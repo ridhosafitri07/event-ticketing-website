@@ -1,54 +1,47 @@
 <?php
-/**
- * View: Booking Event
- * Form booking tiket event
- */
 $this->setVar('showNavbar', true);
 $this->setVar('bodyClass', 'dashboard-body');
 ?>
-
 <?= $this->include('templates/header') ?>
 
-<div class="container">
-    <div class="booking-container">
+<div class="container booking-page">
+    <div class="booking-grid">
         <!-- Event Detail Card -->
         <div class="event-detail-card">
-            <div class="event-detail-image">
-                <?php if (!empty($event['image'])): ?>
-                    <img src="<?= base_url($event['image']) ?>" alt="<?= esc($event['title']) ?>">
-                <?php else: ?>
-                    <div class="event-image-placeholder">
-                        <span class="event-icon-large"><?= esc($event['icon'] ?? '🎉') ?></span>
-                    </div>
-                <?php endif; ?>
-            </div>
+            <?php if (!empty($event['image'])): ?>
+                <img src="<?= base_url($event['image']) ?>" alt="<?= esc($event['title']) ?>" class="event-detail-img">
+            <?php else: ?>
+                <div class="event-detail-img-placeholder">
+                    <span style="font-size: 80px;"><?= esc($event['icon'] ?? '🎉') ?></span>
+                </div>
+            <?php endif; ?>
             
-            <div class="event-detail-content">
-                <span class="event-category-badge"><?= esc($event['category']) ?></span>
+            <div class="event-detail-body">
+                <span class="category-badge"><?= esc($event['category']) ?></span>
                 <h1 class="event-detail-title"><?= esc($event['title']) ?></h1>
                 
-                <div class="event-detail-meta">
-                    <div class="meta-item-large">
-                        <span class="meta-icon">📅</span>
+                <div class="event-detail-info">
+                    <div class="info-row">
+                        <span class="info-icon">📅</span>
                         <div>
-                            <p class="meta-label">Tanggal Event</p>
-                            <p class="meta-value"><?= date('d F Y', strtotime($event['date'])) ?></p>
+                            <p class="info-label">Tanggal Event</p>
+                            <p class="info-value"><?= date('d F Y', strtotime($event['date'])) ?></p>
                         </div>
                     </div>
                     
-                    <div class="meta-item-large">
-                        <span class="meta-icon">📍</span>
+                    <div class="info-row">
+                        <span class="info-icon">📍</span>
                         <div>
-                            <p class="meta-label">Lokasi</p>
-                            <p class="meta-value"><?= esc($event['location']) ?></p>
+                            <p class="info-label">Lokasi</p>
+                            <p class="info-value"><?= esc($event['location']) ?></p>
                         </div>
                     </div>
                     
-                    <div class="meta-item-large">
-                        <span class="meta-icon">🎫</span>
+                    <div class="info-row">
+                        <span class="info-icon">🎫</span>
                         <div>
-                            <p class="meta-label">Tiket Tersedia</p>
-                            <p class="meta-value"><?= number_format($event['available_tickets']) ?> tiket</p>
+                            <p class="info-label">Tiket Tersedia</p>
+                            <p class="info-value"><?= number_format($event['available_tickets']) ?> tiket</p>
                         </div>
                     </div>
                 </div>
@@ -64,16 +57,14 @@ $this->setVar('bodyClass', 'dashboard-body');
 
         <!-- Booking Form Card -->
         <div class="booking-form-card">
-            <h2>🎫 Booking Tiket</h2>
+            <h2 class="form-card-title">🎫 Booking Tiket</h2>
             
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="alert alert-error">
-                    ✗ <?= session()->getFlashdata('error') ?>
-                </div>
+                <div class="error-box"><?= session()->getFlashdata('error') ?></div>
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('errors')): ?>
-                <div class="alert alert-error">
+                <div class="error-box">
                     <?php foreach (session()->getFlashdata('errors') as $error): ?>
                         <p>✗ <?= esc($error) ?></p>
                     <?php endforeach; ?>
@@ -85,7 +76,7 @@ $this->setVar('bodyClass', 'dashboard-body');
                 <input type="hidden" name="event_id" value="<?= $event['id'] ?>">
 
                 <div class="form-group">
-                    <label for="ticket_count">Jumlah Tiket</label>
+                    <label>Jumlah Tiket</label>
                     <input 
                         type="number" 
                         id="ticket_count" 
@@ -95,21 +86,22 @@ $this->setVar('bodyClass', 'dashboard-body');
                         value="1" 
                         required
                         oninput="calculateTotal()"
+                        class="form-input"
                     >
-                    <small>Maksimal: <?= number_format($event['available_tickets']) ?> tiket</small>
+                    <small class="form-hint">Maksimal: <?= number_format($event['available_tickets']) ?> tiket</small>
                 </div>
 
-                <div class="price-breakdown">
+                <div class="price-summary">
                     <div class="price-row">
                         <span>Harga per tiket</span>
-                        <span id="pricePerTicket">Rp <?= number_format($event['price'], 0, ',', '.') ?></span>
+                        <span class="price-val">Rp <?= number_format($event['price'], 0, ',', '.') ?></span>
                     </div>
                     <div class="price-row">
                         <span>Jumlah tiket</span>
                         <span id="ticketQty">1</span>
                     </div>
-                    <hr>
-                    <div class="price-row total">
+                    <div class="price-divider"></div>
+                    <div class="price-row price-total">
                         <span>Total Harga</span>
                         <span id="totalPrice">Rp <?= number_format($event['price'], 0, ',', '.') ?></span>
                     </div>
@@ -117,10 +109,10 @@ $this->setVar('bodyClass', 'dashboard-body');
 
                 <div class="form-group">
                     <label>Metode Pembayaran</label>
-                    <div class="payment-methods">
-                        <label class="payment-method-option">
+                    <div class="payment-options">
+                        <label class="payment-option">
                             <input type="radio" name="payment_method" value="Midtrans" required>
-                            <div class="payment-method-card">
+                            <div class="payment-card">
                                 <span class="payment-icon">💳</span>
                                 <div>
                                     <strong>Midtrans (Online)</strong>
@@ -129,9 +121,9 @@ $this->setVar('bodyClass', 'dashboard-body');
                             </div>
                         </label>
 
-                        <label class="payment-method-option">
+                        <label class="payment-option">
                             <input type="radio" name="payment_method" value="Transfer Manual" required checked>
-                            <div class="payment-method-card">
+                            <div class="payment-card">
                                 <span class="payment-icon">🏦</span>
                                 <div>
                                     <strong>Transfer Manual</strong>
@@ -143,10 +135,10 @@ $this->setVar('bodyClass', 'dashboard-body');
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                    <button type="submit" class="btn-book btn-large">
                         🎫 Booking Sekarang
                     </button>
-                    <a href="<?= base_url('user/dashboard') ?>" class="btn btn-secondary btn-block">
+                    <a href="<?= base_url('user/dashboard') ?>" class="btn-secondary btn-large">
                         Kembali
                     </a>
                 </div>
@@ -155,7 +147,6 @@ $this->setVar('bodyClass', 'dashboard-body');
     </div>
 </div>
 
-<?= $this->section('scripts') ?>
 <script>
 const pricePerTicket = <?= $event['price'] ?>;
 
@@ -167,6 +158,5 @@ function calculateTotal() {
     document.getElementById('totalPrice').textContent = 'Rp ' + total.toLocaleString('id-ID');
 }
 </script>
-<?= $this->endSection() ?>
 
 <?= $this->include('templates/footer') ?>
