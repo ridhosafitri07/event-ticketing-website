@@ -11,22 +11,22 @@ class Midtrans extends BaseConfig
      * Sandbox: https://dashboard.sandbox.midtrans.com/
      * Production: https://dashboard.midtrans.com/
      */
-    public string $serverKey = 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
+    // public string $serverKey = 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
     
     /**
      * Midtrans Client Key
      */
-    public string $clientKey = 'SB-Mid-client-YOUR_CLIENT_KEY_HERE';
+    // public string $clientKey = 'SB-Mid-client-YOUR_CLIENT_KEY_HERE';
     
     /**
      * Environment: 'sandbox' atau 'production'
      */
-    public string $environment = 'sandbox';
+    // public string $environment = 'sandbox';
     
     /**
      * Merchant ID
      */
-    public string $merchantId = 'YOUR_MERCHANT_ID';
+    // public string $merchantId = 'YOUR_MERCHANT_ID';
     
     /**
      * Enable 3D Secure for credit card
