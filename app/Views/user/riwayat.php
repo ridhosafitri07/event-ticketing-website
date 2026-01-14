@@ -80,7 +80,7 @@ $this->setVar('bodyClass', 'dashboard-body');
                     </div>
                     
                     <div class="booking-actions-modern">
-                        <?php if ($booking['status'] === 'Pending' && $booking['payment_method'] === 'Transfer Manual'): ?>
+                        <?php if ($booking['status'] === 'Pending' && $booking['payment_method'] === 'manual_transfer'): ?>
                             <form action="<?= base_url('payment/upload/' . $booking['id']) ?>" method="POST" enctype="multipart/form-data" style="display: inline-block;">
                                 <?= csrf_field() ?>
                                 <label for="payment_proof_<?= $booking['id'] ?>" class="btn-modern btn-upload">
@@ -96,7 +96,7 @@ $this->setVar('bodyClass', 'dashboard-body');
                             </a>
                         <?php endif; ?>
                         
-                        <?php if ($booking['status'] === 'Confirmed'): ?>
+                        <?php if ($booking['status'] === 'Lunas'): ?>
                             <span class="confirmed-badge">✅ Terkonfirmasi</span>
                         <?php endif; ?>
                     </div>

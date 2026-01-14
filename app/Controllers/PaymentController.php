@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\BookingModel;
 use App\Models\PaymentProofModel;
 use App\Models\MidtransTransactionModel;
+use App\Config\BookingStatus;
 
 class PaymentController extends BaseController
 {
@@ -17,6 +18,51 @@ class PaymentController extends BaseController
         $this->bookingModel = new BookingModel();
         $this->paymentProofModel = new PaymentProofModel();
         $this->midtransModel = new MidtransTransactionModel();
+    }
+
+    /**
+     * Halaman instruksi Transfer Manual + upload bukti
+     */
+    public function manualTransfer($bookingId)
+    {
+        $userId = $this->session->get('user_id');
+        $booking = $this->bookingModel->find($bookingId);
+
+        if (!$booking) {
+            return redirect()->to('/user/riwayat')->with('error', 'Booking tidak ditemukan');
+        }
+
+        if ($booking['user_id'] != $userId) {
+            return redirect()->to('/user/riwayat')->with('error', 'Unauthorized');
+        }
+
+        if ($booking['payment_method'] !== 'manual_transfer') {
+            return redirect()->to('/user/riwayat')->with('error', 'Metode pembayaran bukan transfer manual');
+        }
+
+        $paymentProof = $this->paymentProofModel->where('booking_id', $bookingId)->first();
+
+        // Simple configurable bank info (ubah sesuai rekening kamu)
+        $bankAccounts = [
+            [
+                'bank' => 'BCA',
+                'account_number' => '1234567890',
+                'account_name' => 'EventKu',
+            ],
+            [
+                'bank' => 'BRI',
+                'account_number' => '1234567890',
+                'account_name' => 'EventKu',
+            ],
+        ];
+
+        return view('payment/manual_transfer', [
+            'title' => 'Transfer Manual - EventKu',
+            'booking' => $booking,
+            'paymentProof' => $paymentProof,
+            'bankAccounts' => $bankAccounts,
+            'user' => $this->getUserData(),
+        ]);
     }
 
     /**
@@ -36,7 +82,7 @@ class PaymentController extends BaseController
             return redirect()->to('/user/riwayat')->with('error', 'Unauthorized');
         }
 
-        if ($booking['payment_method'] !== 'Transfer Manual') {
+        if ($booking['payment_method'] !== 'manual_transfer') {
             return redirect()->to('/user/riwayat')->with('error', 'Metode pembayaran bukan transfer manual');
         }
 
@@ -62,6 +108,9 @@ class PaymentController extends BaseController
             // Move file to uploads folder
             $file->move(FCPATH . 'uploads/payment_proofs', $newName);
 
+            // If user already uploaded a proof, replace it
+            $existingProof = $this->paymentProofModel->where('booking_id', $bookingId)->first();
+
             // Save to database
             $proofData = [
                 'booking_id' => $bookingId,
@@ -73,15 +122,31 @@ class PaymentController extends BaseController
             ];
 
             try {
-                $this->paymentProofModel->insert($proofData);
+                if ($existingProof) {
+                    // Delete old file (best-effort)
+                    if (!empty($existingProof['file_path'])) {
+                        $oldPath = FCPATH . ltrim($existingProof['file_path'], '/\\');
+                        if (is_file($oldPath)) {
+                            @unlink($oldPath);
+                        }
+                    }
+
+                    $this->paymentProofModel->update($existingProof['id'], $proofData);
+                } else {
+                    $this->paymentProofModel->insert($proofData);
+                }
 
                 // Update booking status
                 $this->bookingModel->update($bookingId, [
-                    'status' => 'Waiting Approval',
-                    'payment_details' => 'Bukti transfer telah diupload'
+                    'status' => BookingStatus::WAITING_APPROVAL,
+                    'payment_details' => json_encode([
+                        'type' => 'manual_transfer_proof_uploaded',
+                        'message' => 'Bukti transfer telah diupload',
+                        'at' => date('Y-m-d H:i:s'),
+                    ], JSON_UNESCAPED_UNICODE)
                 ]);
 
-                return redirect()->to('/user/riwayat')->with('success', 'Bukti transfer berhasil diupload. Menunggu verifikasi admin');
+                return redirect()->to('/payment/manual/' . $bookingId)->with('success', 'Bukti transfer berhasil diupload. Menunggu verifikasi admin');
             } catch (\Exception $e) {
                 // Delete uploaded file if database insert fails
                 if (file_exists(FCPATH . 'uploads/payment_proofs/' . $newName)) {
@@ -111,7 +176,7 @@ class PaymentController extends BaseController
             return redirect()->to('/user/riwayat')->with('error', 'Unauthorized');
         }
 
-        if ($booking['payment_method'] !== 'Midtrans') {
+        if ($booking['payment_method'] !== 'midtrans') {
             return redirect()->to('/user/riwayat')->with('error', 'Metode pembayaran bukan Midtrans');
         }
 

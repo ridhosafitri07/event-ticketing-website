@@ -63,6 +63,15 @@ writable/uploads/*
 writable/debugbar/*
 !writable/debugbar/index.html
 
+#-------------------------
+# Public Uploads (user-generated content)
+#-------------------------
+public/uploads/*
+public/uploads/**/*
+!public/uploads/index.html
+!public/uploads/events/index.html
+!public/uploads/payment_proofs/index.html
+
 php_errors.log
 
 #-------------------------

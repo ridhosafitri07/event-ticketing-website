@@ -71,7 +71,7 @@ class UserController extends BaseController
         $rules = [
             'event_id' => 'required|numeric',
             'ticket_count' => 'required|numeric|greater_than[0]',
-            'payment_method' => 'required|in_list[Midtrans,Transfer Manual]'
+            'payment_method' => 'required|in_list[midtrans,manual_transfer]'
         ];
 
         if (!$this->validate($rules)) {
@@ -113,7 +113,7 @@ class UserController extends BaseController
             'price_per_ticket' => $event['price'],
             'total_price' => $totalPrice,
             'payment_method' => $paymentMethod,
-            'status' => 'Pending',
+            'status' => $paymentMethod === 'midtrans' ? \App\Config\BookingStatus::WAITING_PAYMENT : \App\Config\BookingStatus::PENDING,
             'expired_at' => date('Y-m-d H:i:s', strtotime('+24 hours'))
         ];
 
@@ -136,11 +136,11 @@ class UserController extends BaseController
             }
 
             // Redirect based on payment method
-            if ($paymentMethod === 'Midtrans') {
+            if ($paymentMethod === 'midtrans') {
                 return redirect()->to('/payment/midtrans/' . $bookingId)->with('success', 'Booking berhasil! Silakan lanjutkan pembayaran');
-            } else {
-                return redirect()->to('/user/riwayat')->with('success', 'Booking berhasil! Silakan upload bukti transfer');
             }
+
+            return redirect()->to('/payment/manual/' . $bookingId)->with('success', 'Booking berhasil! Silakan transfer dan upload bukti pembayaran.');
         } catch (\Exception $e) {
             $db->transRollback();
             return redirect()->back()->with('error', 'Booking gagal: ' . $e->getMessage());

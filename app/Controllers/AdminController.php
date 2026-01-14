@@ -7,6 +7,7 @@ use App\Models\BookingModel;
 use App\Models\PaymentProofModel;
 use App\Models\EventModel;
 use App\Models\UserModel;
+use App\Config\BookingStatus;
 
 class AdminController extends BaseController
 {
@@ -18,6 +19,7 @@ class AdminController extends BaseController
 
     public function __construct()
     {
+         helper('admin');
         $this->adminModel = new AdminModel();
         $this->bookingModel = new BookingModel();
         $this->paymentProofModel = new PaymentProofModel();
@@ -25,9 +27,17 @@ class AdminController extends BaseController
         $this->userModel = new UserModel();
     }
 
+
+
+
+
+
+
+
     /**
      * Admin Login Page
      */
+    
     public function login()
     {
         // Jika sudah login, redirect ke dashboard
@@ -99,36 +109,47 @@ class AdminController extends BaseController
     /**
      * Admin Dashboard
      */
-    public function dashboard()
-    {
-        // Statistik
-        $stats = [
-            'total_bookings' => $this->bookingModel->countAll(),
-            'pending_payments' => $this->bookingModel->where('status', 'Waiting Approval')->countAllResults(),
-            'confirmed_bookings' => $this->bookingModel->where('status', 'Confirmed')->countAllResults(),
-            'total_revenue' => $this->bookingModel
-                ->selectSum('total_price')
-                ->where('status', 'Confirmed')
-                ->first()['total_price'] ?? 0,
-            'total_users' => $this->userModel->countAll(),
-            'total_events' => $this->eventModel->countAll()
-        ];
+   public function dashboard()
+{
+    $stats = [
+        // TOTAL
+        'total_events' => $this->eventModel->countAll(),
+        'total_bookings' => $this->bookingModel->countAll(),
+        'pending_payments' => $this->bookingModel
+            ->where('status', BookingStatus::WAITING_APPROVAL)
+            ->countAllResults(),
+        'confirmed_bookings' => $this->bookingModel
+            ->where('status', BookingStatus::LUNAS)
+            ->countAllResults(),
+        'total_revenue' => $this->bookingModel
+            ->selectSum('total_price')
+            ->where('status', BookingStatus::LUNAS)
+            ->first()['total_price'] ?? 0,
+        'total_users' => $this->userModel->countAll(),
+        'active_users' => $this->userModel->countAll(), // Sama dengan total_users karena tidak ada kolom status
 
-        // Recent bookings
-        $recentBookings = $this->bookingModel
-            ->orderBy('booking_date', 'DESC')
-            ->limit(10)
-            ->findAll();
+        // 📈 ANALYTICS (ini yang bikin admin kamu KEREN)
+        'events_change' => $this->calculateMonthlyChange('events'),
+        'bookings_change' => $this->calculateMonthlyChange('bookings'),
+        'users_change' => $this->calculateMonthlyChange('users'),
+        'revenue_change' => $this->calculateRevenueChange()
+    ];
 
-        $data = [
-            'title' => 'Admin Dashboard - EventKu',
-            'admin' => $this->getAdminData(),
-            'stats' => $stats,
-            'recentBookings' => $recentBookings
-        ];
+    // Recent bookings (siap tabel UI)
+    $recentBookings = $this->bookingModel
+        ->select('bookings.*, users.name AS customer_name')
+        ->join('users', 'users.id = bookings.user_id')
+        ->orderBy('booking_date', 'DESC')
+        ->limit(10)
+        ->findAll();
 
-        return view('admin/dashboard', $data);
-    }
+    return view('admin/dashboard', [
+        'title' => 'Admin Dashboard - EventKu',
+        'admin' => $this->getAdminData(),
+        'stats' => $stats,
+        'recentBookings' => $recentBookings
+    ]);
+}
 
     /**
      * Daftar Semua Booking
@@ -138,19 +159,30 @@ class AdminController extends BaseController
         // Filter status
         $status = $this->request->getGet('status');
 
-        $builder = $this->bookingModel->orderBy('booking_date', 'DESC');
+        $builder = $this->bookingModel
+            ->select('bookings.*, users.name AS customer_name')
+            ->join('users', 'users.id = bookings.user_id', 'left')
+            ->orderBy('booking_date', 'DESC');
 
         if ($status) {
-            $builder->where('status', $status);
+            $builder->where('bookings.status', $status);
         }
 
         $bookings = $builder->findAll();
+
+        // Get pending payments count for badge
+        $stats = [
+            'pending_payments' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_APPROVAL)
+                ->countAllResults()
+        ];
 
         $data = [
             'title' => 'Manage Bookings - EventKu',
             'admin' => $this->getAdminData(),
             'bookings' => $bookings,
-            'current_status' => $status
+            'current_status' => $status,
+            'stats' => $stats
         ];
 
         return view('admin/bookings', $data);
@@ -167,20 +199,18 @@ class AdminController extends BaseController
             return redirect()->back()->with('error', 'Booking tidak ditemukan');
         }
 
-        if ($booking['status'] !== 'Waiting Approval') {
+        if ($booking['status'] !== BookingStatus::WAITING_APPROVAL) {
             return redirect()->back()->with('error', 'Booking tidak dalam status Waiting Approval');
         }
 
         // Update booking status
         $updateData = [
-            'status' => 'Confirmed',
+            'status' => BookingStatus::LUNAS,
             'payment_confirmed_at' => date('Y-m-d H:i:s')
         ];
 
         try {
             $this->bookingModel->update($bookingId, $updateData);
-
-            // TODO: Send confirmation email/WhatsApp di Fase 3
 
             return redirect()->back()->with('success', 'Pembayaran berhasil diapprove! Booking #' . $booking['booking_number']);
         } catch (\Exception $e) {
@@ -199,7 +229,7 @@ class AdminController extends BaseController
             return redirect()->back()->with('error', 'Booking tidak ditemukan');
         }
 
-        if ($booking['status'] !== 'Waiting Approval') {
+        if ($booking['status'] !== BookingStatus::WAITING_APPROVAL) {
             return redirect()->back()->with('error', 'Booking tidak dalam status Waiting Approval');
         }
 
@@ -213,8 +243,12 @@ class AdminController extends BaseController
         try {
             // Update booking status
             $this->bookingModel->update($bookingId, [
-                'status' => 'Cancelled',
-                'payment_details' => 'Ditolak: ' . $rejectReason,
+                'status' => BookingStatus::DIBATALKAN,
+                'payment_details' => json_encode([
+                    'type' => 'manual_transfer_rejected',
+                    'reason' => $rejectReason,
+                    'at' => date('Y-m-d H:i:s'),
+                ], JSON_UNESCAPED_UNICODE),
                 'cancelled_at' => date('Y-m-d H:i:s')
             ]);
 
@@ -230,8 +264,6 @@ class AdminController extends BaseController
             if ($db->transStatus() === false) {
                 return redirect()->back()->with('error', 'Reject gagal');
             }
-
-            // TODO: Send notification email/WhatsApp di Fase 3
 
             return redirect()->back()->with('success', 'Pembayaran ditolak. Booking #' . $booking['booking_number']);
         } catch (\Exception $e) {
@@ -321,7 +353,7 @@ class AdminController extends BaseController
         // Validasi input
         $rules = [
             'title' => 'required|min_length[3]|max_length[255]',
-            'date' => 'required|valid_date',
+            'date' => 'required',
             'location' => 'required',
             'price' => 'required|numeric',
             'category' => 'required',
@@ -346,11 +378,17 @@ class AdminController extends BaseController
             'is_active' => $this->request->getPost('is_active') ?? 1
         ];
 
-        // Handle image upload (optional)
+        // Handle image upload
         $imageFile = $this->request->getFile('image');
         if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
+            // Create uploads directory if not exists
+            $uploadPath = FCPATH . 'uploads/events';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
             $newImageName = 'event_' . time() . '.' . $imageFile->getExtension();
-            $imageFile->move(FCPATH . 'uploads/events', $newImageName);
+            $imageFile->move($uploadPath, $newImageName);
             $eventData['image'] = 'uploads/events/' . $newImageName;
         }
 
@@ -404,13 +442,234 @@ class AdminController extends BaseController
     {
         $users = $this->userModel->orderBy('registered_at', 'DESC')->findAll();
 
+        // Precompute booking counts to avoid N+1 queries in the view
+        $bookingCounts = [];
+        $counts = $this->bookingModel
+            ->select('user_id, COUNT(*) AS total')
+            ->groupBy('user_id')
+            ->findAll();
+
+        foreach ($counts as $row) {
+            $bookingCounts[(int) $row['user_id']] = (int) $row['total'];
+        }
+
+        $stats = [
+            'pending_payments' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_APPROVAL)
+                ->countAllResults(),
+        ];
+
         $data = [
             'title' => 'Manage Users - EventKu',
             'admin' => $this->getAdminData(),
-            'users' => $users
+            'users' => $users,
+            'bookingCounts' => $bookingCounts,
+            'stats' => $stats
         ];
 
         return view('admin/users', $data);
+    }
+
+    /**
+     * User Detail
+     */
+    public function userDetail($userId)
+    {
+        $userId = (int) $userId;
+        $user = $this->userModel->find($userId);
+
+        if (!$user) {
+            return redirect()->to('/admin/users')->with('error', 'User tidak ditemukan');
+        }
+
+        $bookings = $this->bookingModel
+            ->where('user_id', $userId)
+            ->orderBy('booking_date', 'DESC')
+            ->findAll();
+
+        $totalSpent = 0;
+        $confirmed = 0;
+        $pending = 0;
+        $cancelled = 0;
+
+        foreach ($bookings as $booking) {
+            if ($booking['status'] === BookingStatus::LUNAS) {
+                $confirmed++;
+                $totalSpent += (int) ($booking['total_price'] ?? 0);
+            } elseif (in_array($booking['status'], [BookingStatus::PENDING, BookingStatus::WAITING_PAYMENT, BookingStatus::WAITING_APPROVAL], true)) {
+                $pending++;
+            } elseif (in_array($booking['status'], [BookingStatus::DIBATALKAN, BookingStatus::EXPIRED], true)) {
+                $cancelled++;
+            }
+        }
+
+        $stats = [
+            'pending_payments' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_APPROVAL)
+                ->countAllResults(),
+        ];
+
+        $userStats = [
+            'total' => count($bookings),
+            'confirmed' => $confirmed,
+            'pending' => $pending,
+            'cancelled' => $cancelled,
+            'total_spent' => $totalSpent,
+        ];
+
+        return view('admin/user_detail', [
+            'title' => 'Detail User - EventKu',
+            'admin' => $this->getAdminData(),
+            'user' => $user,
+            'bookings' => $bookings,
+            'userStats' => $userStats,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Manage Payments
+     */
+    public function payments()
+    {
+        $status = $this->request->getGet('status');
+        $method = $this->request->getGet('method');
+
+        $builder = $this->bookingModel
+            ->select('bookings.*, users.name AS customer_name')
+            ->join('users', 'users.id = bookings.user_id', 'left')
+            ->orderBy('booking_date', 'DESC');
+
+        if (!empty($status)) {
+            $builder->where('bookings.status', $status);
+        }
+        if (!empty($method)) {
+            $builder->where('bookings.payment_method', $method);
+        }
+
+        $payments = $builder->findAll();
+
+        $stats = [
+            'pending_payments' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_APPROVAL)
+                ->countAllResults(),
+            'waiting_payment' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_PAYMENT)
+                ->countAllResults(),
+            'paid' => $this->bookingModel
+                ->where('status', BookingStatus::LUNAS)
+                ->countAllResults(),
+            'total_revenue' => $this->bookingModel
+                ->selectSum('total_price')
+                ->where('status', BookingStatus::LUNAS)
+                ->first()['total_price'] ?? 0,
+        ];
+
+        return view('admin/payments', [
+            'title' => 'Manage Payments - EventKu',
+            'admin' => $this->getAdminData(),
+            'payments' => $payments,
+            'current_status' => $status,
+            'current_method' => $method,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Settings
+     */
+    public function settings()
+    {
+        $stats = [
+            'pending_payments' => $this->bookingModel
+                ->where('status', BookingStatus::WAITING_APPROVAL)
+                ->countAllResults(),
+        ];
+
+        return view('admin/settings', [
+            'title' => 'Settings - EventKu',
+            'admin' => $this->getAdminData(),
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Update admin profile (name + email)
+     */
+    public function updateProfile()
+    {
+        $adminId = (int) $this->session->get('admin_id');
+        if (!$adminId) {
+            return redirect()->to('/admin/login')->with('error', 'Silakan login kembali');
+        }
+
+        $rules = [
+            'full_name' => 'required|min_length[3]|max_length[255]',
+            'email' => 'required|valid_email|is_unique[admins.email,id,' . $adminId . ']',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $fullName = (string) $this->request->getPost('full_name');
+        $email = (string) $this->request->getPost('email');
+
+        try {
+            $this->adminModel->update($adminId, [
+                'full_name' => $fullName,
+                'email' => $email,
+            ]);
+
+            $this->session->set([
+                'admin_full_name' => $fullName,
+                'admin_email' => $email,
+            ]);
+
+            return redirect()->to('/admin/settings')->with('success', 'Profil berhasil diupdate');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal update profil: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Change admin password
+     */
+    public function changePassword()
+    {
+        $adminId = (int) $this->session->get('admin_id');
+        if (!$adminId) {
+            return redirect()->to('/admin/login')->with('error', 'Silakan login kembali');
+        }
+
+        $rules = [
+            'current_password' => 'required',
+            'new_password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[new_password]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $admin = $this->adminModel->find($adminId);
+        if (!$admin) {
+            return redirect()->to('/admin/login')->with('error', 'Silakan login kembali');
+        }
+
+        $currentPassword = (string) $this->request->getPost('current_password');
+        $newPassword = (string) $this->request->getPost('new_password');
+
+        if (!password_verify($currentPassword, $admin['password'])) {
+            return redirect()->back()->withInput()->with('error', 'Password saat ini salah');
+        }
+
+        try {
+            $this->adminModel->update($adminId, ['password' => $newPassword]);
+            return redirect()->to('/admin/settings')->with('success', 'Password berhasil diganti');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal ganti password: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -437,4 +696,58 @@ class AdminController extends BaseController
             'role' => $this->session->get('admin_role')
         ];
     }
+
+
+
+  private function calculateMonthlyChange($type)
+{
+    if ($type === 'events') {
+        $model = $this->eventModel;
+        $dateField = 'created_at';
+    } elseif ($type === 'bookings') {
+        $model = $this->bookingModel;
+        $dateField = 'booking_date';
+    } elseif ($type === 'users') {
+        $model = $this->userModel;
+        $dateField = 'registered_at';
+    } else {
+        return 0;
+    }
+
+    $current = $model
+        ->where('MONTH('.$dateField.')', date('m'))
+        ->where('YEAR('.$dateField.')', date('Y'))
+        ->countAllResults();
+
+    $last = $model
+        ->where('MONTH('.$dateField.')', date('m', strtotime('-1 month')))
+        ->where('YEAR('.$dateField.')', date('Y', strtotime('-1 month')))
+        ->countAllResults();
+
+    if ($last == 0) return 0;
+
+    return round((($current - $last) / $last) * 100, 1);
+}
+
+private function calculateRevenueChange()
+{
+    $current = $this->bookingModel
+        ->selectSum('total_price')
+        ->where('status', BookingStatus::LUNAS)
+        ->where('MONTH(booking_date)', date('m'))
+        ->where('YEAR(booking_date)', date('Y'))
+        ->first()['total_price'] ?? 0;
+
+    $last = $this->bookingModel
+        ->selectSum('total_price')
+        ->where('status', BookingStatus::LUNAS)
+        ->where('MONTH(booking_date)', date('m', strtotime('-1 month')))
+        ->where('YEAR(booking_date)', date('Y', strtotime('-1 month')))
+        ->first()['total_price'] ?? 0;
+
+    if ($last == 0) return 0;
+
+    return round((($current - $last) / $last) * 100, 1);
+}
+
 }

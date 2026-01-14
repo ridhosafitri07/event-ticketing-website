@@ -11,22 +11,26 @@ class Midtrans extends BaseConfig
      * Sandbox: https://dashboard.sandbox.midtrans.com/
      * Production: https://dashboard.midtrans.com/
      */
-    public string $serverKey = 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
+    // Set via environment variable (recommended): MIDTRANS_SERVER_KEY
+    public string $serverKey;
     
     /**
      * Midtrans Client Key
      */
-    public string $clientKey = 'SB-Mid-client-YOUR_CLIENT_KEY_HERE';
+    // Set via environment variable (recommended): MIDTRANS_CLIENT_KEY
+    public string $clientKey;
     
     /**
      * Environment: 'sandbox' atau 'production'
      */
-    public string $environment = 'sandbox';
+    // MIDTRANS_ENV=sandbox|production
+    public string $environment;
     
     /**
      * Merchant ID
      */
-    public string $merchantId = 'YOUR_MERCHANT_ID';
+    // MIDTRANS_MERCHANT_ID
+    public string $merchantId;
     
     /**
      * Enable 3D Secure for credit card
@@ -53,6 +57,19 @@ class Midtrans extends BaseConfig
         'shopeepay',      // ShopeePay
         'other_qris',     // QRIS lainnya
     ];
+
+    public function __construct()
+    {
+        $this->serverKey = (string) (getenv('MIDTRANS_SERVER_KEY') ?: '');
+        $this->clientKey = (string) (getenv('MIDTRANS_CLIENT_KEY') ?: '');
+        $this->merchantId = (string) (getenv('MIDTRANS_MERCHANT_ID') ?: '');
+        $this->environment = (string) (getenv('MIDTRANS_ENV') ?: 'sandbox');
+
+        $is3ds = getenv('MIDTRANS_IS3DS');
+        if ($is3ds !== false && $is3ds !== '') {
+            $this->is3ds = filter_var($is3ds, FILTER_VALIDATE_BOOL);
+        }
+    }
     
     /**
      * Get Snap API URL

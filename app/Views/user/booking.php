@@ -111,7 +111,7 @@ $this->setVar('bodyClass', 'dashboard-body');
                     <label>Metode Pembayaran</label>
                     <div class="payment-options">
                         <label class="payment-option">
-                            <input type="radio" name="payment_method" value="Midtrans" required>
+                            <input type="radio" name="payment_method" value="midtrans" required>
                             <div class="payment-card">
                                 <span class="payment-icon">💳</span>
                                 <div>
@@ -122,7 +122,7 @@ $this->setVar('bodyClass', 'dashboard-body');
                         </label>
 
                         <label class="payment-option">
-                            <input type="radio" name="payment_method" value="Transfer Manual" required checked>
+                            <input type="radio" name="payment_method" value="manual_transfer" required checked>
                             <div class="payment-card">
                                 <span class="payment-icon">🏦</span>
                                 <div>

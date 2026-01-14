@@ -12,9 +12,10 @@ class PaymentProofModel extends Model
         'booking_id', 'booking_number', 'file_name', 
         'file_path', 'file_type', 'file_size'
     ];
-    protected $useTimestamps = true;
-    protected $createdField = 'uploaded_at';
-    protected $updatedField = false;
+    // Let DB default CURRENT_TIMESTAMP fill uploaded_at.
+    // Setting updatedField=false while useTimestamps=true will create an array key 0
+    // and can trigger BaseBuilder::setBind() TypeError.
+    protected $useTimestamps = false;
     
     /**
      * Get proof by booking number
