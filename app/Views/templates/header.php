@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'EventKu - Platform Ticketing Terbaik') ?></title>
     
-    <!-- CSS -->
+    <!-- Base CSS - ALWAYS LOAD FIRST -->
     <link rel="stylesheet" href="<?= base_url('css/style.css') ?>">
     
-    <!-- Favicon (optional) -->
+    <!-- Page-specific CSS - Load based on current page -->
+    <?php 
+    $currentPage = uri_string();
+    
+    // Dashboard CSS
+    if (strpos($currentPage, 'user/dashboard') !== false): ?>
+        <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
+    <?php endif; ?>
+    
+    <?php 
+    // Riwayat CSS
+    if (strpos($currentPage, 'user/riwayat') !== false): ?>
+        <link rel="stylesheet" href="<?= base_url('css/riwayat.css') ?>">
+    <?php endif; ?>
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?= base_url('images/logo tiket.png') ?>">
     
     <!-- Meta tags -->
@@ -16,6 +31,7 @@
     <meta name="author" content="EventKu">
 </head>
 <body class="<?= esc($bodyClass ?? '') ?>">
+    
     
     <?php if (isset($showNavbar) && $showNavbar): ?>
     <!-- ========================================
