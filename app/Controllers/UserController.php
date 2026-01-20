@@ -5,25 +5,106 @@ namespace App\Controllers;
 use App\Models\EventModel;
 use App\Models\BookingModel;
 use App\Models\UserModel;
+use App\Models\FavoriteModel;
 
 class UserController extends BaseController
 {
     protected $eventModel;
     protected $bookingModel;
     protected $userModel;
+    protected $favoriteModel;
 
     public function __construct()
     {
         $this->eventModel = new EventModel();
         $this->bookingModel = new BookingModel();
         $this->userModel = new UserModel();
+        $this->favoriteModel = new FavoriteModel();
     }
+
+
+
+
+     public function toggleFavorite()
+    {
+        // Cek login
+        if (!$this->session->get('logged_in')) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Silakan login terlebih dahulu'
+            ]);
+        }
+
+        $eventId = $this->request->getPost('event_id');
+        $userId = $this->session->get('user_id');
+
+        if (!$eventId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Event ID tidak valid'
+            ]);
+        }
+
+        // Cek apakah event ada
+        $event = $this->eventModel->find($eventId);
+        if (!$event) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Event tidak ditemukan'
+            ]);
+        }
+
+        // Toggle favorite
+        $result = $this->favoriteModel->toggleFavorite($userId, $eventId);
+        
+        $message = $result['action'] === 'added' 
+            ? 'Event ditambahkan ke favorit!' 
+            : 'Event dihapus dari favorit';
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => $message,
+            'favorited' => $result['favorited'],
+            'action' => $result['action']
+        ]);
+    }
+
+    /**
+     * Halaman: My Favorites
+     */
+    public function favorites()
+    {
+        $userId = $this->session->get('user_id');
+        
+        // Ambil semua event favorit user
+        $favorites = $this->favoriteModel->getUserFavorites($userId);
+        
+        $data = [
+            'title' => 'Event Favorit - EventKu',
+            'favorites' => $favorites,
+            'totalFavorites' => count($favorites)
+        ];
+
+        return view('user/favorites', $data);
+    }
+
+
 
     /**
      * Dashboard - Tampilkan daftar events aktif
      */
     public function dashboard()
     {
+        $events = $this->eventModel->where('is_active', 1)->findAll();
+        
+        // Ambil favorite IDs user
+        $favoriteIds = [];
+        if ($this->session->get('logged_in')) {
+            $userId = $this->session->get('user_id');
+            $favoriteIds = $this->favoriteModel->getUserFavoriteIds($userId);
+        }
+
+
         $data = [
             'title' => 'Dashboard - EventKu',
             'user' => $this->getUserData(),

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OTP WhatsApp - EventKu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .status-box.connected {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .status-box.disconnected {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #94a3b8;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.secondary {
+            background: #f1f5f9;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn.secondary:hover {
+            background: #e2e8f0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .otp-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert.success {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test OTP WhatsApp</h1>
+        <p class="subtitle">EventKu - Testing Tool</p>
+
+        <div id="server-status" class="status-box">
+            <strong>Status Server OTP</strong>
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Checking...</span>
+            </div>
+            <div id="whatsapp-status" style="margin-top: 10px; font-size: 13px; color: #666;"></div>
+        </div>
+
+        <!-- STEP 1: Send OTP -->
+        <div id="step-1" class="step active">
+            <div class="form-group">
+                <label for="name">Nama Lengkap</label>
+                <input type="text" id="name" placeholder="Masukkan nama" value="Test User">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Nomor WhatsApp</label>
+                <input type="tel" id="phone" placeholder="08xxxxxxxxxx">
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                    Format: 08xxx atau 628xxx (nomor yang terdaftar di WhatsApp)
+                </small>
+            </div>
+
+            <button class="btn" onclick="sendOTP()">
+                📱 Kirim OTP ke WhatsApp
+            </button>
+
+            <button class="btn secondary" onclick="checkStatus()">
+                🔄 Refresh Status Server
+            </button>
+        </div>
+
+        <!-- STEP 2: Verify OTP -->
+        <div id="step-2" class="step">
+            <div class="alert info">
+                Kode OTP telah dikirim ke WhatsApp <strong id="phone-display"></strong>
+            </div>
+
+            <div class="form-group">
+                <label>Masukkan Kode OTP (6 digit)</label>
+                <div class="otp-inputs">
+                    <input type="text" class="otp-input" maxlength="1" data-index="0">
+                    <input type="text" class="otp-input" maxlength="1" data-index="1">
+                    <input type="text" class="otp-input" maxlength="1" data-index="2">
+                    <input type="text" class="otp-input" maxlength="1" data-index="3">
+                    <input type="text" class="otp-input" maxlength="1" data-index="4">
+                    <input type="text" class="otp-input" maxlength="1" data-index="5">
+                </div>
+            </div>
+
+            <button class="btn" onclick="verifyOTP()">
+                ✅ Verifikasi OTP
+            </button>
+
+            <button class="btn secondary" onclick="backToStep1()">
+                ← Kembali
+            </button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentPhone = '';
+
+        // Check server status on load
+        window.addEventListener('load', () => {
+            checkStatus();
+            setupOTPInputs();
+        });
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                const data = await response.json();
+                
+                const statusBox = document.getElementById('server-status');
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                const whatsappStatus = document.getElementById('whatsapp-status');
+                
+                if (data.success) {
+                    if (data.whatsapp === 'connected') {
+                        statusBox.className = 'status-box connected';
+                        statusDot.className = 'status-dot connected';
+                        statusText.textContent = '✅ Server Online & WhatsApp Terhubung';
+                        whatsappStatus.innerHTML = `<span style="color: #10b981;">● WhatsApp: Connected</span> | Active OTPs: ${data.activeOTPs}`;
+                    } else {
+                        statusBox.className = 'status-box disconnected';
+                        statusDot.className = 'status-dot disconnected';
+                        statusText.textContent = '⚠️ Server Online, WhatsApp Belum Terhubung';
+                        whatsappStatus.innerHTML = `<span style="color: #ef4444;">● WhatsApp: Disconnected</span><br><small>Scan QR Code di terminal untuk menghubungkan WhatsApp</small>`;
+                    }
+                } else {
+                    throw new Error('Server response invalid');
+                }
+            } catch (error) {
+                const statusBox = document.getElementById('server-status');
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                
+                statusBox.className = 'status-box disconnected';
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = '❌ Server Offline';
+                document.getElementById('whatsapp-status').innerHTML = '<small>Pastikan server OTP berjalan di port 3000</small>';
+            }
+        }
+
+        async function sendOTP() {
+            const name = document.getElementById('name').value.trim();
+            let phone = document.getElementById('phone').value.trim();
+
+            if (!name || !phone) {
+                showResult('error', 'Nama dan nomor WhatsApp harus diisi!');
+                return;
+            }
+
+            // Format phone number
+            phone = phone.replace(/[\s\-]/g, '');
+            if (phone.startsWith('08')) {
+                phone = '62' + phone.substring(1);
+            }
+
+            currentPhone = phone;
+            
+            showResult('info', `Mengirim OTP ke ${phone}... <div class="loader"></div>`);
+
+            try {
+                const response = await fetch(`${API_URL}/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone, name: name })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('success', `✅ ${data.message}<br>Kode OTP berlaku selama ${data.expiresIn} detik`);
+                    document.getElementById('phone-display').textContent = phone;
+                    showStep(2);
+                } else {
+                    showResult('error', `❌ ${data.message}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ Gagal mengirim OTP: ${error.message}<br>Pastikan server OTP berjalan di http://localhost:3000`);
+            }
+        }
+
+        async function verifyOTP() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            const otp = Array.from(otpInputs).map(input => input.value).join('');
+
+            if (otp.length !== 6) {
+                showResult('error', '❌ Masukkan 6 digit kode OTP!');
+                return;
+            }
+
+            showResult('info', `Memverifikasi OTP... <div class="loader"></div>`);
+
+            try {
+                const response = await fetch(`${API_URL}/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: currentPhone, otp: otp })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.verified) {
+                    showResult('success', `✅ ${data.message}<br><br>OTP berhasil diverifikasi! Sekarang user dapat melanjutkan reset password.`);
+                } else {
+                    showResult('error', `❌ ${data.message}`);
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                }
+            } catch (error) {
+                showResult('error', `❌ Gagal verifikasi OTP: ${error.message}`);
+            }
+        }
+
+        function setupOTPInputs() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+
+                    if (!/^[0-9]$/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').substring(0, 6);
+                    
+                    pasteData.split('').forEach((char, i) => {
+                        if (otpInputs[i]) {
+                            otpInputs[i].value = char;
+                        }
+                    });
+                    
+                    if (pasteData.length === 6) {
+                        otpInputs[5].focus();
+                    }
+                });
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+        }
+
+        function backToStep1() {
+            showStep(1);
+            document.querySelectorAll('.otp-input').forEach(input => input.value = '');
+            document.getElementById('result').innerHTML = '';
+        }
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="alert ${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

@@ -159,28 +159,41 @@ class AuthController extends BaseController
     }
 
     /**
-     * Proses Forgot Password (POST)
-     * Note: Ini untuk fase 3 (WhatsApp OTP)
+     * Proses Reset Password (POST)
+     * Dipanggil setelah OTP terverifikasi
      */
-    public function doForgotPassword()
+    public function doResetPassword()
     {
-        // Validasi email
+        // Validasi input
         $rules = [
-            'email' => 'required|valid_email'
+            'phone' => 'required',
+            'new_password' => 'required|min_length[8]',
+            'confirm_password' => 'required|matches[new_password]'
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return redirect()->back()->withInput()->with('error', 'Password tidak valid atau tidak sama');
         }
 
-        $email = $this->request->getPost('email');
-        $user = $this->userModel->where('email', $email)->first();
+        $phone = $this->request->getPost('phone');
+        $newPassword = $this->request->getPost('new_password');
+
+        // Cari user berdasarkan nomor HP
+        $user = $this->userModel->where('phone', $phone)->first();
 
         if (!$user) {
-            return redirect()->back()->with('error', 'Email tidak terdaftar');
+            return redirect()->back()->with('error', 'Nomor telepon tidak terdaftar');
         }
 
-        // TODO: Implement WhatsApp OTP di Fase 3
-        return redirect()->back()->with('info', 'Fitur reset password akan segera hadir');
+        // Update password
+        $updateData = [
+            'password' => password_hash($newPassword, PASSWORD_DEFAULT)
+        ];
+
+        if ($this->userModel->update($user['id'], $updateData)) {
+            return redirect()->to('/auth/login')->with('success', 'Password berhasil direset! Silakan login dengan password baru.');
+        } else {
+            return redirect()->back()->with('error', 'Gagal mereset password. Silakan coba lagi.');
+        }
     }
 }

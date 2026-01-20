@@ -133,6 +133,10 @@ $this->setVar('bodyClass', 'dashboard-body');
     <div class="events-grid-premium">
         <?php if (!empty($events) && is_array($events)): ?>
             <?php foreach ($events as $index => $event): ?>
+                <?php 
+                // Cek apakah event ini sudah difavoritkan
+                $isFavorited = in_array($event['id'], $favoriteIds ?? []);
+                ?>
                 <div class="event-card-premium" 
                      data-category="<?= esc($event['category']) ?>"
                      data-title="<?= strtolower(esc($event['title'])) ?>"
@@ -151,6 +155,14 @@ $this->setVar('bodyClass', 'dashboard-body');
                         
                         <!-- Gradient Overlay -->
                         <div class="image-overlay"></div>
+                        
+                        <!-- FAVORITE BUTTON - NEW! -->
+                        <button class="btn-favorite <?= $isFavorited ? 'favorited' : '' ?>" 
+                                onclick="toggleFavorite(<?= $event['id'] ?>, this)"
+                                data-event-id="<?= $event['id'] ?>"
+                                title="<?= $isFavorited ? 'Hapus dari favorit' : 'Tambah ke favorit' ?>">
+                            <span class="heart-icon"><?= $isFavorited ? '❤️' : '🤍' ?></span>
+                        </button>
                         
                         <!-- Quick Info Overlay (on hover) -->
                         <div class="quick-info-overlay">
@@ -239,6 +251,79 @@ $this->setVar('bodyClass', 'dashboard-body');
 </div>
 
 <script>
+// ===== FAVORITE FUNCTIONALITY =====
+function toggleFavorite(eventId, buttonElement) {
+    // Prevent event bubbling
+    event.stopPropagation();
+    
+    // Send AJAX request
+    fetch('<?= base_url('user/favorite/toggle') ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `event_id=${eventId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button state
+            const heartIcon = buttonElement.querySelector('.heart-icon');
+            
+            if (data.favorited) {
+                buttonElement.classList.add('favorited');
+                heartIcon.textContent = '❤️';
+                buttonElement.title = 'Hapus dari favorit';
+                
+                // Animation: scale up
+                buttonElement.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    buttonElement.style.transform = 'scale(1)';
+                }, 300);
+            } else {
+                buttonElement.classList.remove('favorited');
+                heartIcon.textContent = '🤍';
+                buttonElement.title = 'Tambah ke favorit';
+            }
+            
+            // Show toast notification
+            showToast('success', data.message);
+        } else {
+            showToast('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('error', 'Terjadi kesalahan. Silakan coba lagi.');
+    });
+}
+
+// Toast Notification Function
+function showToast(type, message) {
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">${type === 'success' ? '✓' : '✗'}</div>
+        <div class="toast-content">
+            <div class="toast-title">${type === 'success' ? 'Berhasil' : 'Gagal'}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// ===== EXISTING FUNCTIONS =====
 // Search Events
 function searchEvents() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -248,7 +333,6 @@ function searchEvents() {
     const searchInfo = document.getElementById('searchInfo');
     let visibleCount = 0;
     
-    // Show/hide clear button
     clearBtn.style.display = searchTerm ? 'block' : 'none';
     
     cards.forEach(card => {
@@ -266,7 +350,6 @@ function searchEvents() {
         }
     });
     
-    // Show no results or search info
     if (searchTerm && visibleCount === 0) {
         noResults.style.display = 'flex';
         searchInfo.textContent = '';
@@ -279,7 +362,6 @@ function searchEvents() {
     }
 }
 
-// Clear Search
 function clearSearch() {
     document.getElementById('searchInput').value = '';
     document.getElementById('clearSearch').style.display = 'none';
@@ -287,20 +369,16 @@ function clearSearch() {
     searchEvents();
 }
 
-// Filter Events
 function filterEvents(event, category) {
-    // Update active tab
     document.querySelectorAll('.filter-tab-dash').forEach(tab => {
         tab.classList.remove('active');
     });
     event.currentTarget.classList.add('active');
     
-    // Clear search
     document.getElementById('searchInput').value = '';
     document.getElementById('clearSearch').style.display = 'none';
     document.getElementById('searchInfo').textContent = '';
     
-    // Filter cards
     const cards = document.querySelectorAll('.event-card-premium');
     const noResults = document.getElementById('noResults');
     let visibleCount = 0;
@@ -324,7 +402,6 @@ function filterEvents(event, category) {
         }
     });
     
-    // Check if no results
     noResults.style.display = visibleCount === 0 ? 'flex' : 'none';
 }
 

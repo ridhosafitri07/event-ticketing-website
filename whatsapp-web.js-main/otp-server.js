@@ -30,11 +30,14 @@ const whatsappClient = new Client({
             '--disable-features=IsolateOrigins',
             '--disable-site-isolation-trials'
         ],
-        timeout: 60000
+        timeout: 0, // No timeout
+        protocolTimeout: 120000 // 2 menit untuk protocol operations
     },
+    authTimeout: 0, // No auth timeout
+    qrTimeoutMs: 0, // No QR timeout
     webVersionCache: {
         type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html'
     }
 });
 // Storage untuk OTP (production: pakai database)
@@ -62,10 +65,8 @@ whatsappClient.on('auth_failure', (msg) => {
 
 whatsappClient.on('disconnected', (reason) => {
     console.log('⚠️ Client disconnected:', reason);
-    console.log('Mencoba reconnect...');
-    setTimeout(() => {
-        initializeClient();
-    }, 5000);
+    console.log('⚠️ Silakan restart server secara manual');
+    // Tidak auto-reconnect untuk avoid conflict
 });
 
 // Initialize dengan retry
@@ -76,15 +77,18 @@ async function initializeClient() {
     try {
         console.log('Menginisialisasi WhatsApp Client...');
         await whatsappClient.initialize();
+        retryCount = 0; // Reset counter jika berhasil
     } catch (error) {
         console.error('❌ Error saat initialize:', error.message);
         
         if (retryCount < maxRetries) {
             retryCount++;
-            console.log(`Mencoba lagi (${retryCount}/${maxRetries})...`);
-            setTimeout(initializeClient, 5000);
+            console.log(`Mencoba lagi (${retryCount}/${maxRetries}) dalam 10 detik...`);
+            setTimeout(initializeClient, 10000);
         } else {
-            console.error('Gagal initialize setelah beberapa percobaan');
+            console.error('❌ Gagal initialize setelah beberapa percobaan');
+            console.error('💡 Solusi: Tutup semua Chrome, hapus folder .wwebjs_auth, lalu restart server');
+            process.exit(1); // Exit agar tidak loop terus
         }
     }
 }
@@ -106,8 +110,13 @@ app.post('/api/send-otp', async (req, res) => {
         // Generate OTP 6 digit
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Format nomor WhatsApp
-        const chatId = phoneNumber.replace(/[^0-9]/g, '') + '@c.us';
+        // Format nomor WhatsApp - coba beberapa format
+        let chatId = phoneNumber.replace(/[^0-9]/g, '');
+        
+        // Pastikan format 62xxx
+        if (chatId.startsWith('0')) {
+            chatId = '62' + chatId.substring(1);
+        }
         
         // Simpan OTP dengan expiry 5 menit
         const expiryTime = Date.now() + (5 * 60 * 1000);
@@ -130,21 +139,52 @@ Kode ini *berlaku selama 5 menit*.
 Salam,
 Tim Web Ticketing`;
 
-        // Kirim response dulu
-        res.json({
-            success: true,
-            message: 'Kode OTP berhasil dikirim ke WhatsApp Anda',
-            expiresIn: 300
-        });
-
-        // Kirim pesan WhatsApp di background
-        whatsappClient.sendMessage(chatId, message)
-            .then(() => {
-                console.log(`✓ OTP dikirim ke ${phoneNumber}: ${otp}`);
-            })
-            .catch((error) => {
-                console.error(`✗ Gagal kirim OTP ke ${phoneNumber}:`, error.message);
+        // Kirim pesan WhatsApp dengan timeout yang lebih panjang
+        try {
+            // Tunggu sebentar untuk stabilitas
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Coba dengan getNumberId terlebih dahulu
+            const numberId = await whatsappClient.getNumberId(chatId);
+            
+            if (!numberId) {
+                otpStorage.delete(phoneNumber);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Nomor WhatsApp tidak terdaftar atau tidak valid.'
+                });
+            }
+            
+            console.log(`Mencoba kirim ke ${numberId._serialized}...`);
+            
+            // Kirim pesan dengan timeout 60 detik
+            const sendPromise = whatsappClient.sendMessage(numberId._serialized, message);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout 60 detik')), 60000)
+            );
+            
+            const sentMessage = await Promise.race([sendPromise, timeoutPromise]);
+            
+            if (sentMessage) {
+                console.log(`✓ OTP berhasil dikirim ke ${phoneNumber}: ${otp}`);
+                
+                return res.json({
+                    success: true,
+                    message: 'Kode OTP berhasil dikirim ke WhatsApp Anda',
+                    expiresIn: 300
+                });
+            }
+            
+        } catch (error) {
+            console.error(`✗ Error mengirim OTP ke ${phoneNumber}:`, error.message);
+            otpStorage.delete(phoneNumber);
+            
+            return res.status(500).json({
+                success: false,
+                message: 'Timeout mengirim OTP. WhatsApp Web sedang lambat, silakan coba lagi.',
+                error: error.message
             });
+        }
 
         // Auto-cleanup OTP setelah 5 menit
         setTimeout(() => {

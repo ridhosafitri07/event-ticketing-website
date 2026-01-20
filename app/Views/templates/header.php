@@ -12,13 +12,13 @@
     <?php 
     $currentPage = uri_string();
     
-    // Dashboard CSS
+    // User Dashboard CSS (KHUSUS USER)
     if (strpos($currentPage, 'user/dashboard') !== false): ?>
-        <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
+        <link rel="stylesheet" href="<?= base_url('css/user-dashboard.css') ?>">
     <?php endif; ?>
     
     <?php 
-    // Riwayat CSS
+    // Riwayat CSS (KHUSUS USER)
     if (strpos($currentPage, 'user/riwayat') !== false): ?>
         <link rel="stylesheet" href="<?= base_url('css/riwayat.css') ?>">
     <?php endif; ?>
@@ -63,6 +63,23 @@
                 <a href="<?= base_url('user/profile') ?>" class="nav-link <?= (uri_string() == 'user/profile') ? 'active' : '' ?>">
                     <img src="<?= base_url('images/profil icon.jpg') ?>" alt="Profil" class="nav-icon"> Profil
                 </a>
+
+                            <!-- LINK FAVORITES - NEW! -->
+                <a href="<?= base_url('user/favorites') ?>" class="nav-link <?= uri_string() == 'user/favorites' ? 'active' : '' ?>">
+                    <span class="nav-icon">❤️</span>
+                    Favorit
+                </a>
+                
+                <a href="<?= base_url('user/riwayat') ?>" class="nav-link <?= uri_string() == 'user/riwayat' ? 'active' : '' ?>">
+                    <span class="nav-icon">📋</span>
+                    Riwayat
+                </a>
+                
+                <a href="<?= base_url('user/profile') ?>" class="nav-link <?= uri_string() == 'user/profile' ? 'active' : '' ?>">
+                    <span class="nav-icon">👤</span>
+                    Profil
+                </a>
+
             </div>
             
             <!-- User info & logout button -->

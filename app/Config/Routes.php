@@ -17,9 +17,10 @@ $routes->get('/', 'AuthController::index');
 $routes->get('auth/login', 'AuthController::index');
 $routes->get('auth/register', 'AuthController::register');
 $routes->get('auth/forgot-password', 'AuthController::forgotPassword');
+$routes->get('auth/forgotPassword', 'AuthController::forgotPassword'); // Alias untuk compatibility
 $routes->post('auth/doLogin', 'AuthController::doLogin');
 $routes->post('auth/doRegister', 'AuthController::doRegister');
-$routes->post('auth/doForgotPassword', 'AuthController::doForgotPassword');
+$routes->post('auth/doResetPassword', 'AuthController::doResetPassword');
 $routes->get('auth/logout', 'AuthController::logout');
 
 // ============================================
@@ -29,6 +30,10 @@ $routes->get('auth/logout', 'AuthController::logout');
 $routes->group('user', ['filter' => 'auth'], function($routes) {
     // Dashboard
     $routes->get('dashboard', 'UserController::dashboard');
+
+     // Favorite Routes
+    $routes->get('favorites', 'UserController::favorites');
+    $routes->post('favorite/toggle', 'UserController::toggleFavorite');
     
     // Booking
     $routes->get('booking/(:num)', 'UserController::booking/$1');

@@ -1,3 +1,17 @@
+# 🎉 OTP WHATSAPP - SUDAH AKTIF! ✅
+
+> **Status Server:** 🟢 Running | **WhatsApp:** 🟢 Connected | **Ready to Use!** 🚀
+
+**Quick Links:**
+- 📖 [Status & Dokumentasi Lengkap](STATUS-OTP.md)
+- 🚀 [Quick Start Guide](QUICKSTART.md)
+- 📝 [Setup & Troubleshooting](README-OTP.md)
+- 🧪 [Test Tool](test-otp.html) - Buka di browser untuk testing
+
+**Start Server:** Double-click `start-otp-server.bat` atau jalankan `node otp-server.js`
+
+---
+
 <div align="center">
     <br />
     <p>
