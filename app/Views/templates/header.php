@@ -23,6 +23,12 @@
         <link rel="stylesheet" href="<?= base_url('css/riwayat.css') ?>">
     <?php endif; ?>
     
+    <?php 
+    // Payment CSS (untuk halaman payment/transfer)
+    if (strpos($currentPage, 'payment') !== false): ?>
+        <link rel="stylesheet" href="<?= base_url('css/payment-premium.css') ?>">
+    <?php endif; ?>
+    
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?= base_url('images/logo tiket.png') ?>">
     

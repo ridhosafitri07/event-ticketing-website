@@ -4,70 +4,184 @@ $this->setVar('bodyClass', 'dashboard-body');
 ?>
 <?= $this->include('templates/header') ?>
 
-<div class="container" style="max-width: 900px; margin: 0 auto; padding: 28px 16px;">
-    <h1 style="font-size: 28px; margin-bottom: 6px;">🏦 Transfer Manual</h1>
-    <p style="color: #64748b; margin-bottom: 18px;">Lakukan transfer, lalu upload bukti agar admin bisa verifikasi.</p>
+<div class="container payment-container-premium">
+    <!-- Hero Header -->
+    <div class="payment-hero">
+        <div class="payment-hero-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M21 4H3C2.44772 4 2 4.44772 2 5V19C2 19.5523 2.44772 20 3 20H21C21.5523 20 22 19.5523 22 19V5C22 4.44772 21.5523 4 21 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 10H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h1 class="payment-title">Transfer Manual</h1>
+        <p class="payment-subtitle">Lakukan transfer, lalu upload bukti agar admin bisa verifikasi.</p>
+    </div>
 
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="success-box" style="margin-bottom: 14px;"><?= session()->getFlashdata('success') ?></div>
+        <div class="alert-premium success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span><?= session()->getFlashdata('success') ?></span>
+        </div>
     <?php endif; ?>
+    
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="error-box" style="margin-bottom: 14px;"><?= session()->getFlashdata('error') ?></div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('errors')): ?>
-        <div class="error-box" style="margin-bottom: 14px;">
-            <?php foreach (session()->getFlashdata('errors') as $error): ?>
-                <p>✗ <?= esc($error) ?></p>
-            <?php endforeach; ?>
+        <div class="alert-premium error">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span><?= session()->getFlashdata('error') ?></span>
         </div>
     <?php endif; ?>
 
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 16px;">
-        <div style="display:flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <div>
-                <div style="font-weight: 700;">Booking #<?= esc($booking['booking_number']) ?></div>
-                <div style="color:#64748b; font-size: 14px;"><?= esc($booking['event_title']) ?></div>
+    <!-- Booking Summary Card -->
+    <div class="booking-card-premium">
+        <div class="booking-header">
+            <div class="booking-info">
+                <div class="booking-number">Booking #<?= esc($booking['booking_number']) ?></div>
+                <div class="booking-event"><?= esc($booking['event_title']) ?></div>
             </div>
-            <div style="font-weight: 800; color:#667eea; font-size: 16px;">Rp <?= number_format($booking['total_price'], 0, ',', '.') ?></div>
+            <div class="booking-price">
+                <div class="price-label">Total</div>
+                <div class="price-amount">Rp <?= number_format($booking['total_price'], 0, ',', '.') ?></div>
+            </div>
         </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr; gap: 16px;">
-        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:18px;">
-            <h3 style="margin-bottom: 10px;">1) Transfer ke rekening</h3>
-            <ul style="margin-left: 18px; color:#334155;">
-                <?php foreach (($bankAccounts ?? []) as $acc): ?>
-                    <li style="margin-bottom: 8px;">
-                        <strong><?= esc($acc['bank']) ?></strong> — <?= esc($acc['account_number']) ?> a.n <?= esc($acc['account_name']) ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-            <p style="color:#64748b; font-size: 13px; margin-top: 10px;">Catatan: setelah transfer, screenshot/ambil foto bukti lalu upload di langkah 2.</p>
+    <div class="payment-steps">
+        <!-- Step 1: Transfer -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Transfer ke rekening</h3>
+            </div>
+            <div class="step-content">
+                <div class="bank-accounts">
+                    <?php foreach (($bankAccounts ?? []) as $acc): ?>
+                        <div class="bank-account-item">
+                            <div class="bank-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="bank-details">
+                                <div class="bank-name"><?= esc($acc['bank']) ?></div>
+                                <div class="bank-number"><?= esc($acc['account_number']) ?></div>
+                                <div class="bank-holder">a.n <?= esc($acc['account_name']) ?></div>
+                            </div>
+                            <button class="btn-copy" onclick="copyToClipboard('<?= esc($acc['account_number']) ?>')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M8 4V16C8 16.5304 8.21071 17.0391 8.58579 17.4142C8.96086 17.7893 9.46957 18 10 18H18C18.5304 18 19.0391 17.7893 19.4142 17.4142C19.7893 17.0391 20 16.5304 20 16V7.242C20 6.97556 19.9467 6.71181 19.8433 6.46624C19.7399 6.22068 19.5885 5.99824 19.398 5.812L16.083 2.57C15.7094 2.20466 15.2076 2.00007 14.685 2H10C9.46957 2 8.96086 2.21071 8.58579 2.58579C8.21071 2.96086 8 3.46957 8 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 18V20C16 20.5304 15.7893 21.0391 15.4142 21.4142C15.0391 21.7893 14.5304 22 14 22H6C5.46957 22 4.96086 21.7893 4.58579 21.4142C4.21071 21.0391 4 20.5304 4 20V9C4 8.46957 4.21071 7.96086 4.58579 7.58579C4.96086 7.21071 5.46957 7 6 7H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Copy
+                            </button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="step-note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Catatan: Setelah transfer, screenshot/ambil foto bukti lalu upload di langkah 2.
+                </div>
+            </div>
         </div>
 
-        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:18px;">
-            <h3 style="margin-bottom: 10px;">2) Upload bukti transfer</h3>
+        <!-- Step 2: Upload -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Upload bukti transfer</h3>
+            </div>
+            <div class="step-content">
+                <?php if (!empty($paymentProof)): ?>
+                    <div class="upload-status success">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div>
+                            <div class="status-title">Bukti sudah diupload</div>
+                            <div class="status-details">File: <?= esc($paymentProof['file_name'] ?? '-') ?></div>
+                            <div class="status-details">Status: <strong><?= esc($booking['status']) ?></strong></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
-            <?php if (!empty($paymentProof)): ?>
-                <div style="padding: 12px; background: #f1f5f9; border-radius: 10px; margin-bottom: 12px;">
-                    <div style="font-weight: 700; margin-bottom: 4px;">Bukti sudah diupload</div>
-                    <div style="color:#64748b; font-size: 13px;">File: <?= esc($paymentProof['file_name'] ?? '-') ?></div>
-                    <div style="color:#64748b; font-size: 13px;">Status booking: <strong><?= esc($booking['status']) ?></strong></div>
-                </div>
-            <?php endif; ?>
-
-            <form action="<?= base_url('payment/upload/' . $booking['id']) ?>" method="POST" enctype="multipart/form-data">
-                <?= csrf_field() ?>
-                <input type="file" name="payment_proof" accept="image/*,.pdf" required style="display:block; margin-bottom: 12px;">
-                <button type="submit" class="btn-book btn-large" style="width: 100%; max-width: 360px;">
-                    📤 Upload Bukti
-                </button>
-                <a href="<?= base_url('user/riwayat') ?>" class="btn-secondary btn-large" style="display:inline-block; margin-left: 8px;">
-                    Nanti saja
-                </a>
-            </form>
+                <form action="<?= base_url('payment/upload/' . $booking['id']) ?>" method="POST" enctype="multipart/form-data" class="upload-form">
+                    <?= csrf_field() ?>
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf" required class="file-input">
+                        <label for="payment_proof" class="file-label">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="file-text">Klik untuk pilih file</span>
+                            <span class="file-hint">Format: JPG, PNG, atau PDF (Max 5MB)</span>
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-upload-premium">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Upload Bukti
+                        </button>
+                        <a href="<?= base_url('user/riwayat') ?>" class="btn-secondary-premium">
+                            Nanti saja
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Berhasil', 'Nomor rekening disalin!', 'success');
+    });
+}
+
+function showToast(title, message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification-modern ${type}`;
+    toast.innerHTML = `
+        <div class="toast-wrapper">
+            <div class="toast-icon-modern">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="toast-content-modern">
+                <div class="toast-title-modern">${title}</div>
+                <div class="toast-message-modern">${message}</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Show selected file name
+document.getElementById('payment_proof')?.addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name;
+    if (fileName) {
+        const fileText = document.querySelector('.file-text');
+        if (fileText) {
+            fileText.textContent = fileName;
+            fileText.style.color = '#10b981';
+        }
+    }
+});
+</script>
 
 <?= $this->include('templates/footer') ?>
