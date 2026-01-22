@@ -23,6 +23,10 @@ $routes->post('auth/doRegister', 'AuthController::doRegister');
 $routes->post('auth/doResetPassword', 'AuthController::doResetPassword');
 $routes->get('auth/logout', 'AuthController::logout');
 
+// OTP API Routes
+$routes->post('auth/sendOTP', 'AuthController::sendOTP');
+$routes->post('auth/verifyOTP', 'AuthController::verifyOTP');
+
 // ============================================
 // USER ROUTES (Protected by AuthFilter)
 // ============================================
@@ -30,6 +34,9 @@ $routes->get('auth/logout', 'AuthController::logout');
 $routes->group('user', ['filter' => 'auth'], function($routes) {
     // Dashboard
     $routes->get('dashboard', 'UserController::dashboard');
+
+    // Statistics Dashboard
+    $routes->get('statistics', 'UserController::statistics');
 
      // Favorite Routes
     $routes->get('favorites', 'UserController::favorites');
@@ -88,6 +95,7 @@ $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     
     // Manage Events (CRUD)
     $routes->get('events', 'AdminController::events');
+    $routes->get('events/archive-past', 'AdminController::archivePastEvents');
     $routes->get('event/create', 'AdminController::createEvent');
     $routes->get('event/edit/(:num)', 'AdminController::editEvent/$1');
     $routes->post('event/save', 'AdminController::saveEvent');

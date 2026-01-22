@@ -34,24 +34,46 @@ $this->setVar('bodyClass', 'dashboard-body');
     </div>
 
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="toast-notification success show">
-            <div class="toast-icon">✓</div>
-            <div class="toast-content">
-                <div class="toast-title">Berhasil!</div>
-                <div class="toast-message"><?= session()->getFlashdata('success') ?></div>
+        <div class="toast-notification-modern success">
+            <div class="toast-wrapper">
+                <div class="toast-icon-modern">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="toast-content-modern">
+                    <div class="toast-title-modern">Login Berhasil! 🎉</div>
+                    <div class="toast-message-modern"><?= session()->getFlashdata('success') ?></div>
+                </div>
+                <button class="toast-close-modern" onclick="closeToast(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
-            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            <div class="toast-progress"></div>
         </div>
     <?php endif; ?>
     
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="toast-notification error show">
-            <div class="toast-icon">✗</div>
-            <div class="toast-content">
-                <div class="toast-title">Error!</div>
-                <div class="toast-message"><?= session()->getFlashdata('error') ?></div>
+        <div class="toast-notification-modern error">
+            <div class="toast-wrapper">
+                <div class="toast-icon-modern">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="toast-content-modern">
+                    <div class="toast-title-modern">Error!</div>
+                    <div class="toast-message-modern"><?= session()->getFlashdata('error') ?></div>
+                </div>
+                <button class="toast-close-modern" onclick="closeToast(this)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
-            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            <div class="toast-progress"></div>
         </div>
     <?php endif; ?>
 
@@ -405,16 +427,47 @@ function filterEvents(event, category) {
     noResults.style.display = visibleCount === 0 ? 'flex' : 'none';
 }
 
-// Auto-hide toast notifications
+// Modern Toast Notification Functions
+function closeToast(button) {
+    const toast = button.closest('.toast-notification-modern');
+    toast.style.animation = 'toastSlideOut 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+    setTimeout(() => toast.remove(), 400);
+}
+
+// Auto-close toast after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
-    const toasts = document.querySelectorAll('.toast-notification');
+    const toasts = document.querySelectorAll('.toast-notification-modern');
     toasts.forEach(toast => {
+        setTimeout(() => {
+            closeToast(toast.querySelector('.toast-close-modern'));
+        }, 5000);
+    });
+    
+    // Old toast compatibility
+    const oldToasts = document.querySelectorAll('.toast-notification');
+    oldToasts.forEach(toast => {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 5000);
     });
 });
+
+// Add slide out animation to CSS dynamically
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes toastSlideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(120%) scale(0.9);
+        }
+    }
+`;
+document.head.appendChild(style);
 
 // Entrance animations
 document.addEventListener('DOMContentLoaded', function() {

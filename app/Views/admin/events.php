@@ -64,6 +64,7 @@ $extraStyles = <<<CSS
     .btn-warning:hover { filter: brightness(0.92); }
     .status-active { color: var(--success); font-weight: 800; font-size: 13px; }
     .status-inactive { color: var(--danger); font-weight: 800; font-size: 13px; }
+    .status-past { color: var(--gray-500); font-weight: 800; font-size: 13px; }
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -73,9 +74,69 @@ $extraStyles = <<<CSS
         border: 1px solid var(--gray-200);
     }
     .empty-state-icon { font-size: 72px; margin-bottom: 18px; opacity: 0.5; }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        background: white;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        flex-wrap: wrap;
+    }
+    .filter-tab {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 800;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .filter-tab:hover { background: var(--gray-200); }
+    .filter-tab.active { background: var(--primary); color: white; }
+    .filter-tab .badge {
+        background: rgba(0,0,0,0.15);
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        margin-left: 8px;
+    }
+    .archive-section {
+        background: #FEF3C7;
+        border: 2px solid #FCD34D;
+        padding: 16px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .archive-section .info {
+        flex: 1;
+    }
+    .archive-section h4 {
+        margin: 0 0 6px 0;
+        color: #92400E;
+        font-size: 16px;
+    }
+    .archive-section p {
+        margin: 0;
+        color: #78350F;
+        font-size: 14px;
+    }
+    
     @media (max-width: 768px) {
         .events-grid { grid-template-columns: 1fr; }
         .page-header { flex-direction: column; align-items: flex-start; }
+        .filter-tabs { flex-direction: column; }
+        .filter-tab { text-align: center; }
     }
 CSS;
 
@@ -98,6 +159,38 @@ $this->setVar('extraStyles', $extraStyles);
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-error">✗ <?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
+
+    <!-- Archive Section -->
+    <div class="archive-section">
+        <div class="info">
+            <h4>🗄️ Auto-Archive Event Yang Sudah Lewat</h4>
+            <p>Event yang sudah lewat tanggalnya akan otomatis disembunyikan dari user, tapi tetap bisa dilihat di sini. Klik tombol ini untuk mengarsipkan secara manual.</p>
+        </div>
+        <a href="<?= base_url('admin/events/archive-past') ?>" 
+           class="btn btn-warning"
+           onclick="return confirm('Arsipkan semua event yang sudah lewat tanggalnya?')">
+            📦 Arsipkan Event Lama
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="<?= base_url('admin/events?filter=all') ?>" 
+           class="filter-tab <?= ($filter ?? 'all') === 'all' ? 'active' : '' ?>">
+            📋 Semua Event
+            <span class="badge"><?= $stats['total'] ?? 0 ?></span>
+        </a>
+        <a href="<?= base_url('admin/events?filter=upcoming') ?>" 
+           class="filter-tab <?= ($filter ?? '') === 'upcoming' ? 'active' : '' ?>">
+            🚀 Event Mendatang
+            <span class="badge"><?= $stats['upcoming'] ?? 0 ?></span>
+        </a>
+        <a href="<?= base_url('admin/events?filter=past') ?>" 
+           class="filter-tab <?= ($filter ?? '') === 'past' ? 'active' : '' ?>">
+            📅 Event Selesai
+            <span class="badge"><?= $stats['past'] ?? 0 ?></span>
+        </a>
+    </div>
 
     <?php if (!empty($events)): ?>
         <div class="events-grid">
@@ -130,9 +223,16 @@ $this->setVar('extraStyles', $extraStyles);
                             </div>
                             <div class="info-item">
                                 <span>📊</span>
-                                <span class="<?= $event['is_active'] ? 'status-active' : 'status-inactive' ?>">
-                                    <?= $event['is_active'] ? '✓ Aktif' : '✗ Tidak Aktif' ?>
-                                </span>
+                                <?php 
+                                    $isPast = strtotime($event['date']) < strtotime(date('Y-m-d'));
+                                    if ($isPast) {
+                                        echo '<span class="status-past">📅 Event Selesai</span>';
+                                    } else {
+                                        echo '<span class="' . ($event['is_active'] ? 'status-active' : 'status-inactive') . '">';
+                                        echo $event['is_active'] ? '✓ Aktif' : '✗ Tidak Aktif';
+                                        echo '</span>';
+                                    }
+                                ?>
                             </div>
                         </div>
                         

@@ -25,6 +25,186 @@ class UserController extends BaseController
 
 
 
+     /**
+     * Halaman: Dashboard Statistics
+     */
+    public function statistics()
+    {
+        $userId = $this->session->get('user_id');
+        
+        // Get all user bookings
+        $allBookings = $this->bookingModel->where('user_id', $userId)->findAll();
+        
+        // Calculate statistics
+        $stats = [
+            'total_bookings' => count($allBookings),
+            'total_tickets' => array_sum(array_column($allBookings, 'ticket_count')),
+            'total_spending' => array_sum(array_column(
+                array_filter($allBookings, fn($b) => $b['status'] === 'Lunas'),
+                'total_price'
+            )),
+            'confirmed_bookings' => count(array_filter($allBookings, fn($b) => $b['status'] === 'Lunas')),
+            'pending_bookings' => count(array_filter($allBookings, fn($b) => in_array($b['status'], ['Pending', 'Waiting Payment', 'Waiting Approval']))),
+            'cancelled_bookings' => count(array_filter($allBookings, fn($b) => in_array($b['status'], ['Dibatalkan', 'Expired']))),
+        ];
+        
+        // Booking Timeline (Last 6 months)
+        $bookingTimeline = $this->getBookingTimeline($userId);
+        
+        // Category Distribution
+        $categoryDistribution = $this->getCategoryDistribution($userId);
+        
+        // Monthly Spending
+        $monthlySpending = $this->getMonthlySpending($userId);
+        
+        // Top Events
+        $topEvents = $this->getTopEvents($userId);
+        
+        // Payment Method Distribution
+        $paymentMethods = $this->getPaymentMethodDistribution($userId);
+        
+        $data = [
+            'title' => 'Statistics - EventKu',
+            'stats' => $stats,
+            'bookingTimeline' => $bookingTimeline,
+            'categoryDistribution' => $categoryDistribution,
+            'monthlySpending' => $monthlySpending,
+            'topEvents' => $topEvents,
+            'paymentMethods' => $paymentMethods
+        ];
+
+        return view('user/statistics', $data);
+    }
+
+    /**
+     * Get Booking Timeline (Last 6 months)
+     */
+    private function getBookingTimeline($userId)
+    {
+        $bookings = $this->bookingModel
+            ->where('user_id', $userId)
+            ->where('booking_date >=', date('Y-m-d', strtotime('-6 months')))
+            ->orderBy('booking_date', 'ASC')
+            ->findAll();
+        
+        // Group by month
+        $timeline = [];
+        foreach ($bookings as $booking) {
+            $month = date('M Y', strtotime($booking['booking_date']));
+            if (!isset($timeline[$month])) {
+                $timeline[$month] = [
+                    'total' => 0,
+                    'confirmed' => 0,
+                    'pending' => 0,
+                    'cancelled' => 0
+                ];
+            }
+            
+            $timeline[$month]['total']++;
+            
+            if ($booking['status'] === 'Lunas') {
+                $timeline[$month]['confirmed']++;
+            } elseif (in_array($booking['status'], ['Pending', 'Waiting Payment', 'Waiting Approval'])) {
+                $timeline[$month]['pending']++;
+            } else {
+                $timeline[$month]['cancelled']++;
+            }
+        }
+        
+        return $timeline;
+    }
+
+    /**
+     * Get Category Distribution
+     */
+    private function getCategoryDistribution($userId)
+    {
+        $bookings = $this->bookingModel
+            ->select('bookings.*, events.category')
+            ->join('events', 'events.id = bookings.event_id')
+            ->where('bookings.user_id', $userId)
+            ->where('bookings.status', 'Lunas')
+            ->findAll();
+        
+        $categories = [];
+        foreach ($bookings as $booking) {
+            $category = $booking['category'] ?? 'Lainnya';
+            if (!isset($categories[$category])) {
+                $categories[$category] = 0;
+            }
+            $categories[$category]++;
+        }
+        
+        arsort($categories);
+        return $categories;
+    }
+
+    /**
+     * Get Monthly Spending (Last 6 months)
+     */
+    private function getMonthlySpending($userId)
+    {
+        $bookings = $this->bookingModel
+            ->where('user_id', $userId)
+            ->where('status', 'Lunas')
+            ->where('payment_confirmed_at >=', date('Y-m-d', strtotime('-6 months')))
+            ->orderBy('payment_confirmed_at', 'ASC')
+            ->findAll();
+        
+        $spending = [];
+        foreach ($bookings as $booking) {
+            $month = date('M Y', strtotime($booking['payment_confirmed_at']));
+            if (!isset($spending[$month])) {
+                $spending[$month] = 0;
+            }
+            $spending[$month] += $booking['total_price'];
+        }
+        
+        return $spending;
+    }
+
+    /**
+     * Get Top Events (Most booked)
+     */
+    private function getTopEvents($userId)
+    {
+        $bookings = $this->bookingModel
+            ->select('event_title, COUNT(*) as booking_count, SUM(total_price) as total_spent')
+            ->where('user_id', $userId)
+            ->where('status', 'Lunas')
+            ->groupBy('event_title')
+            ->orderBy('booking_count', 'DESC')
+            ->limit(5)
+            ->findAll();
+        
+        return $bookings;
+    }
+
+    /**
+     * Get Payment Method Distribution
+     */
+    private function getPaymentMethodDistribution($userId)
+    {
+        $bookings = $this->bookingModel
+            ->where('user_id', $userId)
+            ->where('status', 'Lunas')
+            ->findAll();
+        
+        $methods = [
+            'manual_transfer' => 0,
+            'midtrans' => 0
+        ];
+        
+        foreach ($bookings as $booking) {
+            if (isset($methods[$booking['payment_method']])) {
+                $methods[$booking['payment_method']]++;
+            }
+        }
+        
+        return $methods;
+    }
+
+
      public function toggleFavorite()
     {
         // Cek login
@@ -95,8 +275,6 @@ class UserController extends BaseController
      */
     public function dashboard()
     {
-        $events = $this->eventModel->where('is_active', 1)->findAll();
-        
         // Ambil favorite IDs user
         $favoriteIds = [];
         if ($this->session->get('logged_in')) {
@@ -108,7 +286,8 @@ class UserController extends BaseController
         $data = [
             'title' => 'Dashboard - EventKu',
             'user' => $this->getUserData(),
-            'events' => $this->eventModel->getActiveEvents()
+            'events' => $this->eventModel->getActiveEvents(),
+            'favoriteIds' => $favoriteIds
         ];
 
         return view('user/dashboard', $data);

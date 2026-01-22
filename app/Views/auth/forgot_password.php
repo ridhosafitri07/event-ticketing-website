@@ -62,7 +62,10 @@
     <!-- STEP 2: Input OTP -->
     <div class="step-content" id="step-2">
         <div class="otp-info">
-            <p>Kode OTP telah dikirim ke WhatsApp <strong id="phone-display"></strong></p>
+            <p id="otp-status">⏳ OTP sedang dikirim ke WhatsApp <strong id="phone-display"></strong>...</p>
+            <p class="otp-note" style="color: #94a3b8; font-size: 13px; margin-top: 8px;">
+                Mohon tunggu 5-10 detik untuk pesan sampai
+            </p>
             <p class="otp-timer">Berlaku selama: <span id="timer">05:00</span></p>
         </div>
 
@@ -422,7 +425,7 @@ body::before {
 </style>
 
 <script>
-const OTP_SERVER = 'http://localhost:3000/api';
+const BASE_URL = '<?= base_url() ?>';
 let currentStep = 1;
 let phoneNumber = '';
 let userName = '';
@@ -480,23 +483,42 @@ document.getElementById('form-send-otp').addEventListener('submit', async (e) =>
     }
 
     try {
-        const response = await fetch(`${OTP_SERVER}/send-otp`, {
+        const response = await fetch(`${BASE_URL}/auth/sendOTP`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber, name: userName })
+            body: JSON.stringify({ phone: phoneNumber, name: userName })
         });
 
         const result = await response.json();
+        
+        // Debug log
+        console.log('📤 Send OTP Response:', result);
+        if (result.debug_otp) {
+            console.log('🔐 DEBUG - OTP CODE:', result.debug_otp);
+        }
 
-        if (result.success) {
+        if (result.status === 'success') {
             // Show success toast
-            showToast('success', 'OTP berhasil dikirim ke WhatsApp!');
+            showToast('success', 'OTP sedang dikirim ke WhatsApp!');
             
-            // Go to step 2
-            document.getElementById('phone-display').textContent = phoneNumber;
+            // Go to step 2 - OTP dikirim di background
+            document.getElementById('phone-display').textContent = result.phone || phoneNumber;
+            phoneNumber = result.phone || phoneNumber;
             goToStep(2);
             startOtpTimer();
             startResendTimer();
+            
+            // Update UI setelah 8 detik (estimasi WhatsApp terkirim)
+            setTimeout(() => {
+                const otpStatus = document.getElementById('otp-status');
+                if (otpStatus) {
+                    otpStatus.innerHTML = '✅ Kode OTP telah dikirim ke WhatsApp <strong>' + (result.phone || phoneNumber) + '</strong>';
+                }
+                const otpNote = document.querySelector('.otp-note');
+                if (otpNote) {
+                    otpNote.remove();
+                }
+            }, 8000);
         } else {
             showToast('error', result.message || 'Gagal mengirim OTP');
         }
@@ -554,15 +576,15 @@ document.getElementById('btn-resend-otp').addEventListener('click', async () => 
     btn.disabled = true;
 
     try {
-        const response = await fetch(`${OTP_SERVER}/send-otp`, {
+        const response = await fetch(`${BASE_URL}/auth/sendOTP`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber, name: userName })
+            body: JSON.stringify({ phone: phoneNumber, name: userName })
         });
 
         const result = await response.json();
 
-        if (result.success) {
+        if (result.status === 'success') {
             showToast('success', 'OTP baru telah dikirim!');
             clearInterval(otpTimer);
             startOtpTimer();
@@ -646,21 +668,25 @@ document.getElementById('form-verify-otp').addEventListener('submit', async (e) 
     btn.disabled = true;
 
     try {
-        const response = await fetch(`${OTP_SERVER}/verify-otp`, {
+        const response = await fetch(`${BASE_URL}/auth/verifyOTP`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber, otp })
+            body: JSON.stringify({ phone: phoneNumber, otp: otp })
         });
 
         const result = await response.json();
+        
+        // Debug log
+        console.log('🔍 Verify OTP Request:', { phone: phoneNumber, otp: otp });
+        console.log('🔍 Verify OTP Response:', result);
 
-        if (result.success && result.verified) {
+        if (result.status === 'success') {
             showToast('success', 'OTP berhasil diverifikasi!');
             clearInterval(otpTimer);
             clearInterval(resendTimer);
             
             // Go to step 3
-            document.getElementById('phone-verified').value = phoneNumber;
+            document.getElementById('phone-verified').value = result.phone || phoneNumber;
             goToStep(3);
         } else {
             showToast('error', result.message || 'Kode OTP salah');

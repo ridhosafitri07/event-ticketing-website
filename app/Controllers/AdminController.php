@@ -299,15 +299,58 @@ class AdminController extends BaseController
      */
     public function events()
     {
-        $events = $this->eventModel->orderBy('created_at', 'DESC')->findAll();
+        // Filter berdasarkan status (upcoming/past/all)
+        $filter = $this->request->getGet('filter') ?? 'all';
+        
+        switch ($filter) {
+            case 'upcoming':
+                $events = $this->eventModel->getUpcomingEvents();
+                break;
+            case 'past':
+                $events = $this->eventModel->getPastEvents();
+                break;
+            default:
+                $events = $this->eventModel->orderBy('date', 'DESC')->findAll();
+                break;
+        }
+
+        // Hitung statistik  
+        $today = date('Y-m-d');
+        
+        $totalEvents = $this->eventModel->countAll();
+        
+        // Clone builder untuk upcoming count
+        $upcomingCount = $this->eventModel->where('date >=', $today)->countAllResults(false);
+        
+        // Buat instance baru untuk past count
+        $eventModelForPast = new \App\Models\EventModel();
+        $pastCount = $eventModelForPast->where('date <', $today)->countAllResults();
+        
+        $stats = [
+            'total' => $totalEvents,
+            'upcoming' => $upcomingCount,
+            'past' => $pastCount
+        ];
 
         $data = [
             'title' => 'Manage Events - EventKu',
             'admin' => $this->getAdminData(),
-            'events' => $events
+            'events' => $events,
+            'filter' => $filter,
+            'stats' => $stats
         ];
 
         return view('admin/events', $data);
+    }
+    
+    /**
+     * Archive Past Events (manual trigger)
+     */
+    public function archivePastEvents()
+    {
+        $count = $this->eventModel->autoArchivePastEvents();
+        
+        return redirect()->to('/admin/events')->with('success', "Berhasil mengarsipkan {$count} event yang sudah lewat");
     }
 
     /**
@@ -366,9 +409,24 @@ class AdminController extends BaseController
 
         $eventId = $this->request->getPost('event_id');
 
+        // Konversi format tanggal ke YYYY-MM-DD
+        $dateInput = $this->request->getPost('date');
+        $dateFormatted = $dateInput;
+        
+        // Cek apakah format sudah YYYY-MM-DD atau perlu konversi
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateInput)) {
+            // Coba parse berbagai format tanggal
+            try {
+                $dateObj = new \DateTime($dateInput);
+                $dateFormatted = $dateObj->format('Y-m-d');
+            } catch (\Exception $e) {
+                return redirect()->back()->withInput()->with('error', 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD atau tanggal yang valid.');
+            }
+        }
+
         $eventData = [
             'title' => $this->request->getPost('title'),
-            'date' => $this->request->getPost('date'),
+            'date' => $dateFormatted,
             'location' => $this->request->getPost('location'),
             'price' => $this->request->getPost('price'),
             'category' => $this->request->getPost('category'),
