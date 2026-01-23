@@ -92,6 +92,10 @@ class PaymentController extends BaseController
                 'uploaded[payment_proof]',
                 'mime_in[payment_proof,image/jpg,image/jpeg,image/png,application/pdf]',
                 'max_size[payment_proof,2048]' // 2MB
+            ],
+            'payment_date' => [
+                'required',
+                'valid_date[Y-m-d\TH:i]'
             ]
         ];
 
@@ -100,6 +104,7 @@ class PaymentController extends BaseController
         }
 
         $file = $this->request->getFile('payment_proof');
+        $paymentDate = $this->request->getPost('payment_date');
 
         if ($file->isValid() && !$file->hasMoved()) {
             // Generate unique filename
@@ -118,7 +123,8 @@ class PaymentController extends BaseController
                 'file_name' => $newName,
                 'file_path' => 'uploads/payment_proofs/' . $newName,
                 'file_type' => $file->getClientMimeType(),
-                'file_size' => $file->getSize()
+                'file_size' => $file->getSize(),
+                'payment_date' => date('Y-m-d H:i:s', strtotime($paymentDate))
             ];
 
             try {

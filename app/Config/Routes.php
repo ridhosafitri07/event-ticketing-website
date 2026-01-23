@@ -41,6 +41,12 @@ $routes->group('user', ['filter' => 'auth'], function($routes) {
      // Favorite Routes
     $routes->get('favorites', 'UserController::favorites');
     $routes->post('favorite/toggle', 'UserController::toggleFavorite');
+
+
+    // Rating & Review
+      $routes->post('rating/submit', 'UserController::submitRating');
+    $routes->get('rating/event/(:num)', 'UserController::getEventRatings/$1');
+    $routes->get('rating/can-rate/(:num)', 'UserController::checkCanRate/$1');
     
     // Booking
     $routes->get('booking/(:num)', 'UserController::booking/$1');

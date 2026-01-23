@@ -247,10 +247,19 @@ class AdminController extends BaseController
                 'payment_details' => json_encode([
                     'type' => 'manual_transfer_rejected',
                     'reason' => $rejectReason,
+                    'rejected_by' => 'Admin',
                     'at' => date('Y-m-d H:i:s'),
                 ], JSON_UNESCAPED_UNICODE),
                 'cancelled_at' => date('Y-m-d H:i:s')
             ]);
+            
+            // Simpan alasan reject ke payment_proofs juga agar user bisa lihat
+            $paymentProof = $this->paymentProofModel->where('booking_id', $bookingId)->first();
+            if ($paymentProof) {
+                $this->paymentProofModel->update($paymentProof['id'], [
+                    'reject_reason' => $rejectReason
+                ]);
+            }
 
             // Kembalikan available tickets
             $event = $this->eventModel->find($booking['event_id']);

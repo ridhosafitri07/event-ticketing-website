@@ -172,6 +172,14 @@ $this->setVar('extraStyles', $extraStyles);
             
             <div style="margin-top: 24px; padding-top: 24px; border-top: 2px solid #f1f5f9;">
                 <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 12px;">📄 Info File</h3>
+                
+                <?php if (!empty($paymentProof['payment_date'])): ?>
+                <div class="detail-row">
+                    <span class="detail-label">Tanggal Transfer</span>
+                    <span class="detail-value" style="color: #667eea; font-weight: 700;"><?= date('d M Y H:i', strtotime($paymentProof['payment_date'])) ?></span>
+                </div>
+                <?php endif; ?>
+                
                 <div class="detail-row">
                     <span class="detail-label">Nama File</span>
                     <span class="detail-value" style="font-size: 12px;"><?= esc($paymentProof['file_name']) ?></span>

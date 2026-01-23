@@ -156,6 +156,113 @@
     background-clip: text;
 }
 
+/* Deadline Warning Styles */
+.deadline-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 14px;
+    animation: fadeIn 0.5s ease;
+}
+
+.deadline-info svg {
+    flex-shrink: 0;
+    color: #10b981;
+}
+
+.deadline-label {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.deadline-timer {
+    font-size: 16px;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.deadline-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 14px;
+    animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.deadline-warning.urgent {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+    border: 2px solid rgba(251, 146, 60, 0.4);
+}
+
+.deadline-warning.urgent svg {
+    color: #fb923c;
+    flex-shrink: 0;
+}
+
+.deadline-warning.expired {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border: 2px solid rgba(239, 68, 68, 0.4);
+}
+
+.deadline-warning.expired svg {
+    color: #ef4444;
+    flex-shrink: 0;
+}
+
+.deadline-content {
+    flex: 1;
+}
+
+.deadline-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 6px;
+}
+
+.deadline-warning.urgent .deadline-title {
+    color: #fb923c;
+}
+
+.deadline-warning.expired .deadline-title {
+    color: #ef4444;
+}
+
+.deadline-text {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.deadline-warning .deadline-timer {
+    font-size: 20px;
+    font-weight: 800;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+    }
+    50% {
+        transform: scale(1.01);
+        box-shadow: 0 8px 20px rgba(251, 146, 60, 0.4);
+    }
+}
+
 /* Step Cards */
 .payment-steps {
     display: grid;
@@ -369,6 +476,42 @@
 /* Upload Form */
 .upload-form {
     margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.form-group input[type="datetime-local"] {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(51, 65, 85, 0.4);
+    border: 2px solid rgba(124, 58, 237, 0.3);
+    border-radius: 12px;
+    color: #e2e8f0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.form-group input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
 }
 
 .file-upload-wrapper {

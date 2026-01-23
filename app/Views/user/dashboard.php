@@ -1,3 +1,4 @@
+
 <?php
 $this->setVar('showNavbar', true);
 $this->setVar('bodyClass', 'dashboard-body');

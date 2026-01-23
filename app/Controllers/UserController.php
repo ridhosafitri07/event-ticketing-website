@@ -374,7 +374,8 @@ class UserController extends BaseController
             'total_price' => $totalPrice,
             'payment_method' => $paymentMethod,
             'status' => $paymentMethod === 'midtrans' ? \App\Config\BookingStatus::WAITING_PAYMENT : \App\Config\BookingStatus::PENDING,
-            'expired_at' => date('Y-m-d H:i:s', strtotime('+24 hours'))
+            'expired_at' => date('Y-m-d H:i:s', strtotime('+12 hours')),
+            'payment_deadline' => $paymentMethod === 'manual_transfer' ? date('Y-m-d H:i:s', strtotime('+24 hours')) : null
         ];
 
         // Start transaction
@@ -549,4 +550,106 @@ class UserController extends BaseController
         $userId = $this->session->get('user_id');
         return $this->userModel->find($userId);
     }
+
+
+    public function submitRating()
+{
+    if (!$this->session->get('logged_in')) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Silakan login terlebih dahulu'
+        ]);
+    }
+
+    $ratingModel = new \App\Models\RatingModel();
+    $userId = $this->session->get('user_id');
+    $eventId = $this->request->getPost('event_id');
+    $rating = $this->request->getPost('rating');
+    $review = $this->request->getPost('review');
+    $isAnonymous = $this->request->getPost('is_anonymous') ? 1 : 0;
+
+    // Validate
+    if (!$eventId || !$rating) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Data tidak lengkap'
+        ]);
+    }
+
+    // Check if user can rate
+    $canRate = $ratingModel->canUserRate($userId, $eventId);
+    if (!$canRate['can_rate']) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => $canRate['reason']
+        ]);
+    }
+
+    // Get booking ID
+    $booking = $this->bookingModel
+        ->where('user_id', $userId)
+        ->where('event_id', $eventId)
+        ->where('status', 'Lunas')
+        ->first();
+
+    $data = [
+        'event_id' => $eventId,
+        'user_id' => $userId,
+        'booking_id' => $booking ? $booking['id'] : null,
+        'rating' => $rating,
+        'review' => $review,
+        'is_anonymous' => $isAnonymous
+    ];
+
+    if ($ratingModel->addRating($data)) {
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Rating berhasil dikirim!'
+        ]);
+    }
+
+    return $this->response->setJSON([
+        'success' => false,
+        'message' => 'Gagal mengirim rating'
+    ]);
 }
+
+/**
+ * Get Event Ratings (AJAX)
+ */
+public function getEventRatings($eventId)
+{
+    $ratingModel = new \App\Models\RatingModel();
+    
+    $ratings = $ratingModel->getEventRatings($eventId);
+    $stats = $ratingModel->getRatingStats($eventId);
+    
+    return $this->response->setJSON([
+        'success' => true,
+        'ratings' => $ratings,
+        'stats' => $stats
+    ]);
+}
+
+/**
+ * Check if user can rate event
+ */
+public function checkCanRate($eventId)
+{
+    if (!$this->session->get('logged_in')) {
+        return $this->response->setJSON([
+            'can_rate' => false,
+            'reason' => 'Login required'
+        ]);
+    }
+
+    $ratingModel = new \App\Models\RatingModel();
+    $userId = $this->session->get('user_id');
+    
+    $result = $ratingModel->canUserRate($userId, $eventId);
+    
+    return $this->response->setJSON($result);
+}
+
+}
+

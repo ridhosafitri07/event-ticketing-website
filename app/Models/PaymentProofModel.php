@@ -10,7 +10,7 @@ class PaymentProofModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = [
         'booking_id', 'booking_number', 'file_name', 
-        'file_path', 'file_type', 'file_size'
+        'file_path', 'file_type', 'file_size', 'payment_date', 'reject_reason'
     ];
     // Let DB default CURRENT_TIMESTAMP fill uploaded_at.
     // Setting updatedField=false while useTimestamps=true will create an array key 0

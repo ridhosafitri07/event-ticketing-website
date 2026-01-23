@@ -13,7 +13,7 @@ class BookingModel extends Model
         'event_title', 'event_date', 'event_location', 'event_icon',
         'ticket_count', 'price_per_ticket', 'total_price',
         'payment_method', 'payment_channel', 'payment_details',
-        'status', 'payment_confirmed_at', 'cancelled_at', 'expired_at'
+        'status', 'payment_confirmed_at', 'payment_deadline', 'cancelled_at', 'expired_at'
     ];
     protected $useTimestamps = true;
     protected $createdField = 'booking_date';
