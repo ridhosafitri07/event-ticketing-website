@@ -430,10 +430,29 @@ class UserController extends BaseController
      */
     public function profile()
     {
+        $userId = $this->session->get('user_id');
+        
+        // Get user bookings for stats
+        $userBookings = $this->bookingModel->where('user_id', $userId)->findAll();
+        
+        // Calculate stats
+        $totalBookings = count($userBookings);
+        $attendedEvents = count(array_unique(array_column(
+            array_filter($userBookings, fn($b) => $b['status'] === 'Lunas'),
+            'event_id'
+        )));
+        $totalSpent = array_sum(array_column(
+            array_filter($userBookings, fn($b) => $b['status'] === 'Lunas'),
+            'total_price'
+        ));
+        
         $data = [
             'title' => 'Profile - EventKu',
             'user' => $this->getUserData(),
-            'validation' => \Config\Services::validation()
+            'validation' => \Config\Services::validation(),
+            'totalBookings' => $totalBookings,
+            'attendedEvents' => $attendedEvents,
+            'totalSpent' => $totalSpent
         ];
 
         return view('user/profile', $data);
