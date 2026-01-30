@@ -980,7 +980,7 @@
                     <!-- TABLE -->
                     <div class="table-container">
                         <table>
-                            <tbody>
+                           <tbody>
 <?php if (!empty($recentBookings)): ?>
     <?php foreach ($recentBookings as $booking): ?>
     <tr>
@@ -992,26 +992,43 @@
         <td>Rp <?= number_format($booking['total_price'], 0, ',', '.') ?></td>
         <td><?= esc($booking['payment_method']) ?></td>
         <td>
-            <span class="badge badge-<?= getBadgeClass($booking['status']) ?>">
-                <?= esc($booking['status']) ?>
+            <?php
+            // Helper inline untuk badge status
+            $statusClass = 'info';
+            $status = strtolower(trim($booking['status']));
+            
+            if (in_array($status, ['dibatalkan', 'cancelled', 'canceled'])) {
+                $statusClass = 'danger';
+            } elseif (in_array($status, ['lunas', 'confirmed', 'paid', 'success'])) {
+                $statusClass = 'success';
+            } elseif (in_array($status, ['pending', 'waiting payment', 'menunggu pembayaran', 'waiting approval'])) {
+                $statusClass = 'warning';
+            }
+            ?>
+            <span class="badge badge-<?= $statusClass ?>">
+                <?= ucfirst(esc($booking['status'])) ?>
             </span>
         </td>
         <td>
-            <a href="<?= base_url('admin/booking/view/'.$booking['id']) ?>"
-               class="btn btn-primary btn-sm">View</a>
+            <a href="<?= base_url('admin/bookings') ?>"
+               class="btn btn-primary btn-sm"
+               style="text-decoration: none;">
+                View All
+            </a>
         </td>
     </tr>
     <?php endforeach; ?>
 <?php else: ?>
     <tr>
-        <td colspan="9" style="text-align:center; color:#64748b;">
-            No bookings found
+        <td colspan="9" style="text-align:center; color:#64748b; padding: 40px;">
+            <svg style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <div>No recent bookings found</div>
         </td>
     </tr>
 <?php endif; ?>
-</tbody>
-
-                            
+</tbody>       
                                
                             
                         </table>

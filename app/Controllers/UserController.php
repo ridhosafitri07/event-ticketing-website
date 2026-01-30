@@ -670,5 +670,49 @@ public function checkCanRate($eventId)
     return $this->response->setJSON($result);
 }
 
+/**
+ * Download E-Ticket PDF
+ */
+public function downloadTicket($bookingId)
+{
+    $userId = $this->session->get('user_id');
+    
+    // Get booking with event details
+    $booking = $this->bookingModel->find($bookingId);
+    
+    if (!$booking || $booking['user_id'] != $userId) {
+        return redirect()->to('/user/riwayat')->with('error', 'Booking tidak ditemukan');
+    }
+    
+    // Only allow download for paid bookings
+    if ($booking['status'] !== 'Lunas') {
+        return redirect()->to('/user/riwayat')->with('error', 'E-Ticket hanya tersedia untuk booking yang sudah lunas');
+    }
+    
+    // Get event details
+    $event = $this->eventModel->find($booking['event_id']);
+    $user = $this->userModel->find($userId);
+    
+    // Generate QR Code data (booking number)
+    $qrData = $booking['booking_number'];
+    
+    // Load view untuk e-ticket
+    $html = view('tickets/eticket_template', [
+        'booking' => $booking,
+        'event' => $event,
+        'user' => $user,
+        'qrData' => $qrData
+    ]);
+    
+    // Generate PDF
+    $dompdf = new \Dompdf\Dompdf();
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+    
+    // Output PDF
+    $filename = 'E-Ticket_' . $booking['booking_number'] . '.pdf';
+    $dompdf->stream($filename, ['Attachment' => true]);
 }
 
+}

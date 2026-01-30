@@ -164,7 +164,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * API: Kirim OTP via WhatsApp (Python)
+     * API: Kirim OTP via WhatsApp (Node.js)
      */
     public function sendOTP()
     {
@@ -209,18 +209,18 @@ class AuthController extends BaseController
             ]);
         }
 
-        // Hit Python API untuk kirim OTP
+        // Hit Node.js API untuk kirim OTP
         try {
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'http://localhost:5000/send-otp');
+            curl_setopt($ch, CURLOPT_URL, 'http://localhost:3000/api/send-otp');
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-                'phone' => $formattedPhone,
+                'phoneNumber' => $formattedPhone,  // Ubah 'phone' jadi 'phoneNumber'
                 'name' => $name
             ]));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30 detik cukup untuk kirim WhatsApp
+            curl_setopt($ch, CURLOPT_TIMEOUT, 90); // 90 detik untuk WhatsApp (butuh waktu lama)
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 
             $response = curl_exec($ch);
@@ -257,8 +257,8 @@ class AuthController extends BaseController
                         'debug_otp' => $otpCode  // Temporary debug
                     ]);
                 } else {
-                    // Python return error
-                    log_message('error', 'Python API error: ' . json_encode($result));
+                    // Node.js return error
+                    log_message('error', 'Node.js API error: ' . json_encode($result));
                     return $this->response->setJSON([
                         'status' => 'error',
                         'message' => $result['message'] ?? 'Gagal mengirim OTP'
@@ -267,7 +267,7 @@ class AuthController extends BaseController
             }
 
             // Jika response tidak valid
-            log_message('error', 'Invalid response from Python API. HTTP Code: ' . $httpCode);
+            log_message('error', 'Invalid response from Node.js API. HTTP Code: ' . $httpCode);
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Gagal mengirim OTP. Server error.'

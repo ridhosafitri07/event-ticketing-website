@@ -56,6 +56,9 @@ $routes->group('user', ['filter' => 'auth'], function($routes) {
     $routes->get('riwayat', 'UserController::riwayat');
     $routes->get('cancelBooking/(:num)', 'UserController::cancelBooking/$1');
     
+    // E-Ticket Download
+    $routes->get('ticket/download/(:num)', 'UserController::downloadTicket/$1');
+    
     // Profile
     $routes->get('profile', 'UserController::profile');
     $routes->post('profile/update', 'UserController::updateProfile');

@@ -285,10 +285,12 @@ $this->setVar('bodyClass', 'dashboard-body');
                         <?php endif; ?>
                         
                         <?php if ($booking['status'] === 'Lunas'): ?>
-                            <button class="btn-action-premium btn-success" onclick="alert('Download E-Ticket Coming Soon!')">
+                            <a href="<?= base_url('user/ticket/download/' . $booking['id']) ?>" 
+                               class="btn-action-premium btn-success" 
+                               target="_blank">
                                 <span class="btn-icon">📥</span>
                                 <span class="btn-text">Download E-Ticket</span>
-                            </button>
+                            </a>
                         <?php endif; ?>
                         
                         <button class="btn-action-premium btn-secondary" onclick="showBookingDetail(<?= htmlspecialchars(json_encode($booking)) ?>)">

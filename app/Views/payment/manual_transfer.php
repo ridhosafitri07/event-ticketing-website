@@ -177,24 +177,17 @@ $this->setVar('bodyClass', 'dashboard-body');
                             <div style="font-size: 12px; color: #94a3b8; margin-top: 8px;">💡 Klik untuk memperbesar</div>
                         </div>
                     <?php endif; ?>
-                <?php endif; ?>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <a href="<?= base_url('user/riwayat') ?>" class="btn-secondary-premium" style="display: inline-block; text-decoration: none;">
+                            Lihat Riwayat Booking
+                        </a>
+                    </div>
+                    
+                <?php else: ?>
 
                 <form action="<?= base_url('payment/upload/' . $booking['id']) ?>" method="POST" enctype="multipart/form-data" class="upload-form">
                     <?= csrf_field() ?>
-                    
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="payment_date" style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
-                            📅 Tanggal & Waktu Transfer <span style="color: #ef4444;">*</span>
-                        </label>
-                        <input type="datetime-local" 
-                               name="payment_date" 
-                               id="payment_date" 
-                               required
-                               max="<?= date('Y-m-d\TH:i') ?>"
-                               value="<?= !empty($paymentProof['payment_date']) ? date('Y-m-d\TH:i', strtotime($paymentProof['payment_date'])) : '' ?>"
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-family: inherit; transition: all 0.3s;">
-                        <div style="font-size: 12px; color: #64748b; margin-top: 6px;">Masukkan kapan Anda melakukan transfer</div>
-                    </div>
                     
                     <div class="file-upload-wrapper">
                         <input type="file" name="payment_proof" id="payment_proof" accept="image/*,.pdf" required class="file-input">
@@ -226,6 +219,8 @@ $this->setVar('bodyClass', 'dashboard-body');
                         </a>
                     </div>
                 </form>
+                
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -263,6 +258,13 @@ function updateCountdown() {
     const countdownEl = document.getElementById('countdown');
     if (!countdownEl) return;
     
+    // Stop countdown jika bukti sudah diupload
+    const uploadStatus = document.querySelector('.upload-status.success');
+    if (uploadStatus) {
+        countdownEl.innerHTML = '<span style="color: #10b981; font-weight: 800;">✓ Bukti telah diupload</span>';
+        return;
+    }
+    
     const deadline = new Date(countdownEl.dataset.deadline).getTime();
     const now = new Date().getTime();
     const timeLeft = deadline - now;
@@ -296,7 +298,10 @@ function updateCountdown() {
 // Update countdown setiap detik
 if (document.getElementById('countdown')) {
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    const uploadStatus = document.querySelector('.upload-status.success');
+    if (!uploadStatus) {
+        setInterval(updateCountdown, 1000);
+    }
 }
 
 // Show selected file name
