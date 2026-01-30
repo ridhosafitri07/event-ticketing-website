@@ -12,8 +12,9 @@ $extraStyles = <<<CSS
 
     .events-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 18px;
+        max-width: 100%;
     }
     .event-card {
         background: white;
@@ -22,17 +23,27 @@ $extraStyles = <<<CSS
         border: 1px solid var(--gray-200);
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
         transition: all 0.2s ease;
+        max-width: 450px;
+        width: 100%;
+        justify-self: center;
     }
     .event-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10); }
     .event-image {
         width: 100%;
-        height: 200px;
+        height: 220px;
+        max-height: 220px;
         background: var(--gray-100);
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
     }
-    .event-image img { width: 100%; height: 100%; object-fit: cover; }
+    .event-image img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover;
+        object-position: center;
+    }
     .event-icon-large { font-size: 64px; }
     .event-content { padding: 18px; }
     .event-category {
@@ -75,6 +86,101 @@ $extraStyles = <<<CSS
     }
     .empty-state-icon { font-size: 72px; margin-bottom: 18px; opacity: 0.5; }
     
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header h3 { font-size: 18px; font-weight: 700; margin: 0; }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--gray-500);
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+    .close-btn:hover { background: var(--gray-100); }
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    .form-group textarea { resize: vertical; }
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+    
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+        position: relative;
+    }
+    .search-bar svg {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: var(--gray-400);
+        pointer-events: none;
+    }
+    .search-bar input {
+        flex: 1;
+        padding: 12px 14px 12px 40px;
+        border: 1px solid var(--gray-300);
+        border-radius: 12px;
+        font-size: 14px;
+        background: white;
+    }
+    .search-bar input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+    
     .filter-tabs {
         display: flex;
         gap: 10px;
@@ -106,6 +212,38 @@ $extraStyles = <<<CSS
         font-size: 12px;
         margin-left: 8px;
     }
+    .advanced-filters {
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        margin-bottom: 20px;
+    }
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+    .filter-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 6px;
+    }
+    .filter-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    .filter-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
     .archive-section {
         background: #FEF3C7;
         border: 2px solid #FCD34D;
@@ -132,11 +270,63 @@ $extraStyles = <<<CSS
         font-size: 14px;
     }
     
+    @media (max-width: 1200px) {
+        .events-grid { 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+    
     @media (max-width: 768px) {
-        .events-grid { grid-template-columns: 1fr; }
-        .page-header { flex-direction: column; align-items: flex-start; }
-        .filter-tabs { flex-direction: column; }
-        .filter-tab { text-align: center; }
+        .events-grid { 
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .event-card {
+            max-width: 100%;
+        }
+        .event-image {
+            height: 200px;
+            max-height: 200px;
+        }
+        .page-header { 
+            flex-direction: column; 
+            align-items: flex-start; 
+        }
+        .filter-tabs { 
+            flex-direction: column; 
+        }
+        .filter-tab { 
+            text-align: center; 
+        }
+        .filter-row { 
+            grid-template-columns: 1fr; 
+        }
+        .filter-group .btn { 
+            width: 100%; 
+        }
+        .event-actions {
+            justify-content: center;
+            width: 100%;
+        }
+        .event-actions .btn {
+            flex: 1;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .events-grid {
+            grid-template-columns: 1fr;
+        }
+        .event-image {
+            height: 180px;
+            max-height: 180px;
+        }
+        .event-title {
+            font-size: 15px;
+        }
+        .info-item {
+            font-size: 13px;
+        }
     }
 CSS;
 
@@ -159,6 +349,14 @@ $this->setVar('extraStyles', $extraStyles);
     <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-error">✗ <?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Cari event berdasarkan nama, kategori, atau lokasi..." onkeyup="searchEvents()">
+    </div>
 
     <!-- Archive Section -->
     <div class="archive-section">
@@ -190,6 +388,48 @@ $this->setVar('extraStyles', $extraStyles);
             📅 Event Selesai
             <span class="badge"><?= $stats['past'] ?? 0 ?></span>
         </a>
+        <a href="<?= base_url('admin/events?filter=inactive') ?>" 
+           class="filter-tab <?= ($filter ?? '') === 'inactive' ? 'active' : '' ?>">
+            ✗ Event Nonaktif
+            <span class="badge"><?= $stats['inactive'] ?? 0 ?></span>
+        </a>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="advanced-filters">
+        <form method="GET" action="<?= base_url('admin/events') ?>">
+            <input type="hidden" name="filter" value="<?= esc($filter ?? 'all') ?>">
+            
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>📅 Dari Tanggal</label>
+                    <input type="date" name="date_from" value="<?= esc($date_from ?? '') ?>" class="filter-input">
+                </div>
+                
+                <div class="filter-group">
+                    <label>📅 Sampai Tanggal</label>
+                    <input type="date" name="date_to" value="<?= esc($date_to ?? '') ?>" class="filter-input">
+                </div>
+                
+                <div class="filter-group">
+                    <label>🎯 Kategori</label>
+                    <select name="category" class="filter-input">
+                        <option value="">Semua Kategori</option>
+                        <?php foreach ($categories ?? [] as $cat): ?>
+                            <option value="<?= esc($cat) ?>" <?= ($category ?? '') === $cat ? 'selected' : '' ?>>
+                                <?= esc(ucfirst($cat)) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-primary">🔍 Filter</button>
+                    <a href="<?= base_url('admin/events?filter=' . ($filter ?? 'all')) ?>" class="btn btn-secondary">↻ Reset</a>
+                </div>
+            </div>
+        </form>
     </div>
 
     <?php if (!empty($events)): ?>
@@ -246,12 +486,27 @@ $this->setVar('extraStyles', $extraStyles);
                                    title="Edit Event">
                                     ✏️ Edit
                                 </a>
-                                <a href="<?= base_url('admin/event/delete/' . $event['id']) ?>" 
-                                   class="btn btn-danger" 
-                                   onclick="return confirm('⚠️ Yakin ingin menghapus event ini?\n\nEvent: <?= esc($event['title']) ?>\n\nPerhatian: Event yang sudah memiliki booking tidak bisa dihapus.')"
-                                   title="Hapus Event">
-                                    🗑️ Hapus
-                                </a>
+                                <?php 
+                                    $isPastEvent = strtotime($event['date']) < strtotime(date('Y-m-d'));
+                                    // Jika event sudah selesai (tanggal lewat), jangan tampilkan tombol aktifkan/nonaktifkan
+                                    if (!$isPastEvent): 
+                                        if ($event['is_active']): 
+                                ?>
+                                    <button class="btn btn-danger" 
+                                            onclick="showDeactivateModal(<?= $event['id'] ?>, '<?= esc($event['title']) ?>')" 
+                                            title="Nonaktifkan Event">
+                                        ✗ Nonaktifkan
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-primary" 
+                                            onclick="showActivateModal(<?= $event['id'] ?>, '<?= esc($event['title']) ?>')" 
+                                            title="Aktifkan Event">
+                                        ✓ Aktifkan
+                                    </button>
+                                <?php 
+                                        endif;
+                                    endif; 
+                                ?>
                             </div>
                         </div>
                     </div>
@@ -268,4 +523,132 @@ $this->setVar('extraStyles', $extraStyles);
             </a>
         </div>
     <?php endif; ?>
+
+    <!-- ACTIVATE MODAL -->
+    <div class="modal" id="activateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✓ Aktifkan Event</h3>
+                <button class="close-btn" onclick="closeActivateModal()">&times;</button>
+            </div>
+            <form id="activateForm" method="POST">
+                <?= csrf_field() ?>
+                <input type="hidden" name="_method" value="POST">
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin mengaktifkan event ini?</p>
+                    <div class="form-group">
+                        <label>Event</label>
+                        <input type="text" id="activateEventName" readonly>
+                    </div>
+                    <p style="color: var(--gray-600); font-size: 13px; margin-top: 12px;">
+                        ✓ Event akan muncul di daftar event user<br>
+                        ✓ User dapat membeli tiket event ini
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeActivateModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">✓ Aktifkan Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DEACTIVATE MODAL -->
+    <div class="modal" id="deactivateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✗ Nonaktifkan Event</h3>
+                <button class="close-btn" onclick="closeDeactivateModal()">&times;</button>
+            </div>
+            <form id="deactivateForm" method="POST">
+                <?= csrf_field() ?>
+                <input type="hidden" name="_method" value="POST">
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menonaktifkan event ini?</p>
+                    <div class="form-group">
+                        <label>Event</label>
+                        <input type="text" id="deactivateEventName" readonly>
+                    </div>
+                    <p style="color: var(--warning); font-size: 13px; margin-top: 12px;">
+                        ⚠️ Event akan disembunyikan dari user<br>
+                        ⚠️ User tidak dapat membeli tiket event ini
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeactivateModal()">Batal</button>
+                    <button type="submit" class="btn btn-danger">✗ Nonaktifkan Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showActivateModal(eventId, eventName) {
+            document.getElementById('activateForm').action = '<?= base_url('admin/event/activate/') ?>' + eventId;
+            document.getElementById('activateEventName').value = eventName;
+            document.getElementById('activateModal').classList.add('active');
+        }
+
+        function closeActivateModal() {
+            document.getElementById('activateModal').classList.remove('active');
+        }
+
+        function showDeactivateModal(eventId, eventName) {
+            document.getElementById('deactivateForm').action = '<?= base_url('admin/event/deactivate/') ?>' + eventId;
+            document.getElementById('deactivateEventName').value = eventName;
+            document.getElementById('deactivateModal').classList.add('active');
+        }
+
+        function closeDeactivateModal() {
+            document.getElementById('deactivateModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('activateModal').addEventListener('click', function(e) {
+            if (e.target === this) closeActivateModal();
+        });
+
+        document.getElementById('deactivateModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeactivateModal();
+        });
+
+        function searchEvents() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const eventsGrid = document.querySelector('.events-grid');
+            const eventCards = eventsGrid ? eventsGrid.querySelectorAll('.event-card') : [];
+            let visibleCount = 0;
+
+            eventCards.forEach(card => {
+                const title = card.querySelector('.event-title').textContent.toLowerCase();
+                const category = card.querySelector('.event-category').textContent.toLowerCase();
+                const location = card.querySelector('.info-item:nth-child(2)').textContent.toLowerCase();
+
+                if (title.includes(searchValue) || category.includes(searchValue) || location.includes(searchValue)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update empty state if exists
+            const emptyState = document.querySelector('.empty-state');
+            if (emptyState && eventsGrid) {
+                if (visibleCount === 0 && searchValue !== '') {
+                    eventsGrid.style.display = 'none';
+                    if (!document.getElementById('searchEmptyState')) {
+                        const searchEmpty = document.createElement('div');
+                        searchEmpty.id = 'searchEmptyState';
+                        searchEmpty.className = 'empty-state';
+                        searchEmpty.innerHTML = '<div class="empty-state-icon">🔍</div><h3>Tidak ditemukan</h3><p>Event yang Anda cari tidak ada</p>';
+                        eventsGrid.parentNode.insertBefore(searchEmpty, eventsGrid.nextSibling);
+                    }
+                } else {
+                    eventsGrid.style.display = '';
+                    const searchEmpty = document.getElementById('searchEmptyState');
+                    if (searchEmpty) searchEmpty.remove();
+                }
+            }
+        }
+    </script>
 <?= $this->include('admin/_partials/layout_bottom') ?>

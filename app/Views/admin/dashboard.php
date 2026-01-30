@@ -157,40 +157,11 @@
             z-index: 90;
         }
 
-        .search-bar {
-            position: relative;
-            width: 400px;
-        }
-
-        .search-bar input {
-            width: 100%;
-            padding: 10px 16px 10px 40px;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .search-bar svg {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            color: var(--gray-400);
-        }
-
         .topbar-actions {
             display: flex;
             align-items: center;
             gap: 16px;
+            margin-left: auto;
         }
 
         .notification-btn {
@@ -430,59 +401,6 @@
             padding: 24px;
         }
 
-        /* BUTTONS */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: var(--gray-100);
-            color: var(--gray-700);
-        }
-
-        .btn-secondary:hover {
-            background: var(--gray-200);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
         /* TABLE */
         .table-container {
             overflow-x: auto;
@@ -548,180 +466,6 @@
             color: var(--info);
         }
 
-        /* TOAST NOTIFICATION */
-        .toast-container {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .toast {
-            background: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            border-left: 4px solid var(--success);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 320px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 2px;
-        }
-
-        .toast-message {
-            font-size: 13px;
-            color: var(--gray-600);
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            color: var(--gray-400);
-        }
-
-        .toast.success {
-            border-left-color: var(--success);
-        }
-
-        .toast.error {
-            border-left-color: var(--danger);
-        }
-
-        .toast.warning {
-            border-left-color: var(--warning);
-        }
-
-        /* FILTERS */
-        .filters {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--gray-600);
-        }
-
-        select, input[type="date"] {
-            padding: 8px 12px;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            font-size: 14px;
-            color: var(--gray-700);
-            background: white;
-        }
-
-        select:focus, input[type="date"]:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* PAGINATION */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-        }
-
-        .pagination button {
-            padding: 8px 12px;
-            border: 1px solid var(--gray-300);
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--gray-700);
-            transition: all 0.2s ease;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: var(--gray-50);
-            border-color: var(--primary);
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* EMPTY STATE */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            opacity: 0.3;
-        }
-
-        .empty-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 8px;
-        }
-
-        .empty-text {
-            font-size: 14px;
-            color: var(--gray-500);
-            margin-bottom: 24px;
-        }
-
         /* RESPONSIVE */
         @media (max-width: 768px) {
             .sidebar {
@@ -733,7 +477,7 @@
             }
 
             .search-bar {
-                width: 100%;
+                display: none;
             }
 
             .stats-grid {
@@ -746,6 +490,26 @@
 
             .content {
                 padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .user-info {
+                display: none;
             }
         }
     </style>
@@ -827,13 +591,6 @@
     <div class="main-content">
         <!-- TOPBAR -->
         <div class="topbar">
-            <div class="search-bar">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input type="text" placeholder="Search events, bookings, users...">
-            </div>
-
             <div class="topbar-actions">
                 <button class="notification-btn">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -874,7 +631,7 @@
                     </div>
                     <div class="stat-value"><?= number_format($stats['total_events']) ?></div>
                     <div class="stat-change <?= $stats['events_change'] >= 0 ? 'positive' : 'negative' ?>">
-                        <span><?= abs($stats['events_change']) ?>% from last month</span>
+                        <span><?= abs($stats['events_change']) ?>% dari bulan lalu</span>
                     </div>
                 </div>
 
@@ -890,7 +647,7 @@
                     </div>
                     <div class="stat-value"><?= number_format($stats['total_bookings']) ?></div>
                     <div class="stat-change <?= $stats['bookings_change'] >= 0 ? 'positive' : 'negative' ?>">
-                        <span><?= abs($stats['bookings_change']) ?>% from last month</span>
+                        <span><?= abs($stats['bookings_change']) ?>% dari bulan lalu</span>
                     </div>
                 </div>
 
@@ -906,7 +663,7 @@
                     </div>
                     <div class="stat-value">Rp <?= number_format($stats['total_revenue'], 0, ',', '.') ?></div>
                     <div class="stat-change <?= $stats['revenue_change'] >= 0 ? 'positive' : 'negative' ?>">
-                        <span><?= abs($stats['revenue_change']) ?>% from last month</span>
+                        <span><?= abs($stats['revenue_change']) ?>% dari bulan lalu</span>
                     </div>
                 </div>
 
@@ -922,65 +679,33 @@
                     </div>
                     <div class="stat-value"><?= number_format($stats['active_users']) ?></div>
                     <div class="stat-change <?= $stats['users_change'] >= 0 ? 'positive' : 'negative' ?>">
-                        <span><?= abs($stats['users_change']) ?>% from last month</span>
+                        <span><?= abs($stats['users_change']) ?>% dari bulan lalu</span>
                     </div>
                 </div>
             </div>
-
 
             <!-- RECENT BOOKINGS -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Recent Bookings</h2>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-secondary btn-sm">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                            </svg>
-                            Filter
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Export
-                        </button>
-                    </div>
                 </div>
                 <div class="card-body">
-                    <!-- FILTERS -->
-                    <div class="filters">
-                        <div class="filter-group">
-                            <label class="filter-label">Status</label>
-                            <select>
-                                <option>All Status</option>
-                                <option>Pending</option>
-                                <option>Confirmed</option>
-                                <option>Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Payment Method</label>
-                            <select>
-                                <option>All Methods</option>
-                                <option>Transfer Manual</option>
-                                <option>Midtrans</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Date From</label>
-                            <input type="date">
-                        </div>
-                        <div class="filter-group">
-                            <label class="filter-label">Date To</label>
-                            <input type="date">
-                        </div>
-                    </div>
-
                     <!-- TABLE -->
                     <div class="table-container">
                         <table>
-                           <tbody>
+                            <thead>
+                                <tr>
+                                    <th>Booking #</th>
+                                    <th>Customer</th>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Tickets</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 <?php if (!empty($recentBookings)): ?>
     <?php foreach ($recentBookings as $booking): ?>
     <tr>
@@ -988,12 +713,11 @@
         <td><?= esc($booking['customer_name']) ?></td>
         <td><?= esc($booking['event_title']) ?></td>
         <td><?= date('d M Y', strtotime($booking['booking_date'])) ?></td>
-        <td><?= $booking['ticket_count'] ?></td>
+        <td><?= $booking['ticket_count'] ?> tiket</td>
         <td>Rp <?= number_format($booking['total_price'], 0, ',', '.') ?></td>
         <td><?= esc($booking['payment_method']) ?></td>
         <td>
             <?php
-            // Helper inline untuk badge status
             $statusClass = 'info';
             $status = strtolower(trim($booking['status']));
             
@@ -1009,18 +733,11 @@
                 <?= ucfirst(esc($booking['status'])) ?>
             </span>
         </td>
-        <td>
-            <a href="<?= base_url('admin/bookings') ?>"
-               class="btn btn-primary btn-sm"
-               style="text-decoration: none;">
-                View All
-            </a>
-        </td>
     </tr>
     <?php endforeach; ?>
 <?php else: ?>
     <tr>
-        <td colspan="9" style="text-align:center; color:#64748b; padding: 40px;">
+        <td colspan="8" style="text-align:center; color:#64748b; padding: 40px;">
             <svg style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
@@ -1028,133 +745,12 @@
         </td>
     </tr>
 <?php endif; ?>
-</tbody>       
-                               
-                            
+</tbody>
                         </table>
-                    </div>
-
-                    <!-- PAGINATION -->
-                    <div class="pagination">
-                        <button disabled>Previous</button>
-                        <button class="active">1</button>
-                        <button>2</button>
-                        <button>3</button>
-                        <button>4</button>
-                        <button>5</button>
-                        <button>Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RECENT ACTIVITIES -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Recent Activities</h2>
-                </div>
-                <div class="card-body">
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; background: var(--gray-50); border-radius: 8px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <svg style="width: 20px; height: 20px; color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">New Event Created</div>
-                                <div style="font-size: 13px; color: var(--gray-600); margin-bottom: 8px;">"Tech Summit 2025" has been added to the system</div>
-                                <div style="font-size: 12px; color: var(--gray-500);">2 hours ago</div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; background: var(--gray-50); border-radius: 8px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <svg style="width: 20px; height: 20px; color: var(--success);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">Payment Approved</div>
-                                <div style="font-size: 13px; color: var(--gray-600); margin-bottom: 8px;">Booking #BK20250113002 payment has been confirmed</div>
-                                <div style="font-size: 12px; color: var(--gray-500);">3 hours ago</div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; background: var(--gray-50); border-radius: 8px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <svg style="width: 20px; height: 20px; color: var(--warning);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">New User Registered</div>
-                                <div style="font-size: 13px; color: var(--gray-600); margin-bottom: 8px;">john.doe@example.com has joined the platform</div>
-                                <div style="font-size: 12px; color: var(--gray-500);">5 hours ago</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <script>
-        // Toast Notification System
-        function showToast(title, message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--success);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
-                error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--danger);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
-                warning: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--warning);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
-            };
-            
-            toast.innerHTML = `
-                <div class="toast-icon">${icons[type]}</div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        }
-
-        // Demo: Show toast on load
-        setTimeout(() => {
-            showToast('Welcome!', 'Dashboard loaded successfully', 'success');
-        }, 500);
-
-        // Search functionality
-        document.querySelector('.search-bar input').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            // Add your search logic here
-            console.log('Searching for:', searchTerm);
-        });
-
-        // Table interactions
-        document.querySelectorAll('tbody tr').forEach(row => {
-            row.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'BUTTON') {
-                    console.log('Row clicked:', this);
-                }
-            });
-        });
-    </script>
 </body>
 </html>

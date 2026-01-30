@@ -551,7 +551,7 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input type="text" placeholder="Search bookings...">
+                <input type="text" id="searchInput" placeholder="Search bookings..." onkeyup="searchBookings()">
             </div>
 
             <div class="user-menu">
@@ -638,19 +638,18 @@
                                                 <a href="<?= base_url('admin/payment-proof/' . $booking['id']) ?>" class="btn btn-primary" title="Lihat Bukti Transfer">
                                                     👁️ Lihat Bukti
                                                 </a>
-                                                <form action="<?= base_url('admin/approve/' . $booking['id']) ?>" method="POST" style="display: inline;">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit" class="btn btn-success" onclick="return confirm('Approve pembayaran untuk booking <?= esc($booking['booking_number']) ?>?')" title="Approve Pembayaran">
-                                                        ✓ Approve
-                                                    </button>
-                                                </form>
+                                                <button class="btn btn-success" onclick="showApproveModal(<?= $booking['id'] ?>, '<?= esc($booking['booking_number']) ?>')" title="Approve Pembayaran">
+                                                    ✓ Approve
+                                                </button>
                                                 <button class="btn btn-danger" onclick="showRejectModal(<?= $booking['id'] ?>, '<?= esc($booking['booking_number']) ?>')" title="Reject Pembayaran">
                                                     ✗ Reject
                                                 </button>
                                             <?php elseif ($booking['status'] === 'Waiting Payment' && $booking['payment_method'] === 'midtrans'): ?>
-                                                <span class="btn btn-secondary" style="cursor: default;">Menunggu Bayar Midtrans</span>
-                                            <?php else: ?>
-                                                <span class="btn btn-secondary" style="cursor: default;">-</span>
+                                                <span style="color: #f59e0b; font-size: 14px;">⏱ Menunggu Bayar</span>
+                                            <?php elseif ($booking['status'] === 'Lunas'): ?>
+                                                <span style="color: #10b981; font-size: 18px;" title="Lunas">✓</span>
+                                            <?php elseif ($booking['status'] === 'Dibatalkan'): ?>
+                                                <span style="color: #ef4444; font-size: 18px;" title="Dibatalkan">✗</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -666,6 +665,35 @@
                     </div>
                 <?php endif; ?>
             </div>
+        </div>
+    </div>
+
+    <!-- APPROVE MODAL -->
+    <div class="modal" id="approveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✓ Approve Pembayaran</h3>
+                <button class="close-btn" onclick="closeApproveModal()">&times;</button>
+            </div>
+            <form id="approveForm" method="POST">
+                <?= csrf_field() ?>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin meng-approve pembayaran ini?</p>
+                    <div class="form-group">
+                        <label>Booking Number</label>
+                        <input type="text" id="approveBookingNumber" readonly style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 8px;">
+                    </div>
+                    <p style="color: var(--success); font-size: 13px; margin-top: 12px;">
+                        ✓ Pembayaran akan dikonfirmasi<br>
+                        ✓ Status booking akan berubah menjadi "Lunas"<br>
+                        ✓ User akan mendapatkan E-ticket
+                    </p>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--gray-200);">
+                    <button type="button" class="btn btn-secondary" onclick="closeApproveModal()">Batal</button>
+                    <button type="submit" class="btn btn-success">✓ Approve Pembayaran</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -695,6 +723,16 @@
     </div>
 
     <script>
+        function showApproveModal(bookingId, bookingNumber) {
+            document.getElementById('approveForm').action = '<?= base_url('admin/approve/') ?>' + bookingId;
+            document.getElementById('approveBookingNumber').value = bookingNumber;
+            document.getElementById('approveModal').classList.add('active');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.remove('active');
+        }
+
         function showRejectModal(bookingId, bookingNumber) {
             document.getElementById('rejectForm').action = '<?= base_url('admin/reject/') ?>' + bookingId;
             document.getElementById('rejectBookingNumber').value = bookingNumber;
@@ -706,11 +744,44 @@
         }
 
         // Close modal when clicking outside
+        document.getElementById('approveModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeApproveModal();
+            }
+        });
+
         document.getElementById('rejectModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeRejectModal();
             }
         });
+
+        // Search function
+        function searchBookings() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const table = document.querySelector('table tbody');
+            const rows = table.getElementsByTagName('tr');
+            let visibleCount = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                const bookingNumber = rows[i].cells[0].textContent.toLowerCase();
+                const eventName = rows[i].cells[1].textContent.toLowerCase();
+                const customerName = rows[i].cells[2].textContent.toLowerCase();
+
+                if (bookingNumber.includes(searchValue) || eventName.includes(searchValue) || customerName.includes(searchValue)) {
+                    rows[i].style.display = '';
+                    visibleCount++;
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+
+            // Show/hide empty state
+            const emptyState = document.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.style.display = (visibleCount === 0 && searchValue !== '') ? 'flex' : 'none';
+            }
+        }
     </script>
 </body>
 </html>

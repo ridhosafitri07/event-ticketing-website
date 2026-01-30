@@ -154,41 +154,11 @@ $pendingPayments = (int)($stats['pending_payments'] ?? 0);
             border-bottom: 1px solid var(--gray-200);
             padding: 16px 32px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 90;
-        }
-
-        .search-bar {
-            position: relative;
-            width: 400px;
-        }
-
-        .search-bar input {
-            width: 100%;
-            padding: 10px 16px 10px 40px;
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .search-bar svg {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            color: var(--gray-400);
         }
 
         .user-menu {
@@ -327,12 +297,6 @@ $pendingPayments = (int)($stats['pending_payments'] ?? 0);
 
 <div class="main-content">
     <div class="topbar">
-        <div class="search-bar">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" placeholder="Search...">
-        </div>
         <div class="user-menu">
             <div class="user-avatar"><?= esc($adminAvatar) ?></div>
             <div>

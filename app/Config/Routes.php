@@ -109,6 +109,8 @@ $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     $routes->get('event/edit/(:num)', 'AdminController::editEvent/$1');
     $routes->post('event/save', 'AdminController::saveEvent');
     $routes->get('event/delete/(:num)', 'AdminController::deleteEvent/$1');
+    $routes->post('event/activate/(:num)', 'AdminController::activateEvent/$1');
+    $routes->post('event/deactivate/(:num)', 'AdminController::deactivateEvent/$1');
     
     // Manage Users
     $routes->get('users', 'AdminController::users');

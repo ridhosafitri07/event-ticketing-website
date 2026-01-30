@@ -19,6 +19,36 @@ $extraStyles = <<<CSS
     }
     .page-header h1 { font-size: 22px; color: var(--gray-900); margin: 0; }
 
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+        position: relative;
+    }
+    .search-bar svg {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: var(--gray-400);
+        pointer-events: none;
+    }
+    .search-bar input {
+        flex: 1;
+        padding: 12px 14px 12px 40px;
+        border: 1px solid var(--gray-300);
+        border-radius: 12px;
+        font-size: 14px;
+        background: white;
+    }
+    .search-bar input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+
     .cards {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -132,6 +162,14 @@ $this->setVar('extraStyles', $extraStyles);
 <div class="admin-container">
     <div class="page-header">
         <h1>💳 Payments</h1>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Cari berdasarkan booking number, event, atau customer..." onkeyup="searchPayments()">
     </div>
 
     <div class="cards">
@@ -248,5 +286,30 @@ $this->setVar('extraStyles', $extraStyles);
         </table>
     </div>
 </div>
+
+<script>
+    function searchPayments() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const table = document.querySelector('table tbody');
+        const rows = table.getElementsByTagName('tr');
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            // Skip empty state row
+            if (rows[i].cells.length === 1) continue;
+
+            const bookingNumber = rows[i].cells[0].textContent.toLowerCase();
+            const eventName = rows[i].cells[1].textContent.toLowerCase();
+            const customerName = rows[i].cells[2].textContent.toLowerCase();
+
+            if (bookingNumber.includes(searchValue) || eventName.includes(searchValue) || customerName.includes(searchValue)) {
+                rows[i].style.display = '';
+                visibleCount++;
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+</script>
 
 <?= $this->include('admin/_partials/layout_bottom') ?>

@@ -11,10 +11,25 @@ $extraStyles = <<<CSS
     }
     .page-header h1 { font-size: 22px; color: var(--gray-900); margin: 0; }
 
-    .search-bar { display: flex; gap: 12px; margin-bottom: 18px; }
+    .search-bar { 
+        display: flex; 
+        gap: 12px; 
+        margin-bottom: 18px;
+        position: relative;
+    }
+    .search-bar svg {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: var(--gray-400);
+        pointer-events: none;
+    }
     .search-bar input {
         flex: 1;
-        padding: 12px 14px;
+        padding: 12px 14px 12px 40px;
         border: 1px solid var(--gray-300);
         border-radius: 12px;
         font-size: 14px;
@@ -114,9 +129,12 @@ $this->setVar('extraStyles', $extraStyles);
     </div>
 
     <div class="search-bar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
         <input type="text" 
                id="searchInput" 
-               placeholder="🔍 Cari user berdasarkan nama, email, atau nomor HP..." 
+               placeholder="Cari user berdasarkan nama, email, atau nomor HP..." 
                onkeyup="searchUsers()">
     </div>
 

@@ -136,12 +136,13 @@ class AdminController extends BaseController
     ];
 
     // Recent bookings (siap tabel UI)
-    $recentBookings = $this->bookingModel
-        ->select('bookings.*, users.name AS customer_name')
-        ->join('users', 'users.id = bookings.user_id')
-        ->orderBy('booking_date', 'DESC')
-        ->limit(10)
-        ->findAll();
+   $recentBookings = $this->bookingModel
+    ->select('bookings.*, users.name AS customer_name, events.title AS event_title')
+    ->join('users', 'users.id = bookings.user_id', 'left')
+    ->join('events', 'events.id = bookings.event_id', 'left')
+    ->orderBy('booking_date', 'DESC')
+    ->limit(10)
+    ->findAll();
 
     return view('admin/dashboard', [
         'title' => 'Admin Dashboard - EventKu',
@@ -212,9 +213,9 @@ class AdminController extends BaseController
         try {
             $this->bookingModel->update($bookingId, $updateData);
 
-            return redirect()->back()->with('success', 'Pembayaran berhasil diapprove! Booking #' . $booking['booking_number']);
+            return redirect()->to('/admin/bookings')->with('success', 'Pembayaran berhasil diapprove! Booking #' . $booking['booking_number']);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Approve gagal: ' . $e->getMessage());
+            return redirect()->to('/admin/bookings')->with('error', 'Approve gagal: ' . $e->getMessage());
         }
     }
 
@@ -308,37 +309,85 @@ class AdminController extends BaseController
      */
     public function events()
     {
-        // Filter berdasarkan status (upcoming/past/all)
+        // Filter berdasarkan status (upcoming/past/all/inactive)
         $filter = $this->request->getGet('filter') ?? 'all';
+        $category = $this->request->getGet('category') ?? '';
+        $dateFrom = $this->request->getGet('date_from') ?? '';
+        $dateTo = $this->request->getGet('date_to') ?? '';
+        
+        $builder = $this->eventModel->builder();
         
         switch ($filter) {
             case 'upcoming':
-                $events = $this->eventModel->getUpcomingEvents();
+                $builder->where('date >=', date('Y-m-d'))
+                        ->where('is_active', 1);
                 break;
             case 'past':
-                $events = $this->eventModel->getPastEvents();
+                $builder->where('date <', date('Y-m-d'));
+                break;
+            case 'inactive':
+                // Hanya event yang is_active = 0 (yang sengaja dinonaktifkan)
+                // DAN tanggalnya BELUM lewat (bukan event selesai)
+                $builder->where('is_active', 0)
+                        ->where('date >=', date('Y-m-d'));
+                // Jangan apply date range filter untuk inactive
+                $dateFrom = '';
+                $dateTo = '';
                 break;
             default:
-                $events = $this->eventModel->orderBy('date', 'DESC')->findAll();
+                // all - no filter by date or status
                 break;
         }
+        
+        // Filter by category (berlaku untuk semua tab)
+        if (!empty($category)) {
+            $builder->where('category', $category);
+        }
+        
+        // Filter by date range (tidak berlaku untuk tab 'inactive')
+        if (!empty($dateFrom) && $filter !== 'inactive') {
+            $builder->where('date >=', $dateFrom);
+        }
+        if (!empty($dateTo) && $filter !== 'inactive') {
+            $builder->where('date <=', $dateTo);
+        }
+        
+        $events = $builder->orderBy('date', 'DESC')->get()->getResultArray();
+        
+        // Get all unique categories for filter
+        $categories = $this->eventModel->select('category')
+            ->distinct()
+            ->orderBy('category', 'ASC')
+            ->findAll();
+        
+        $uniqueCategories = array_column($categories, 'category');
 
         // Hitung statistik  
         $today = date('Y-m-d');
         
         $totalEvents = $this->eventModel->countAll();
         
-        // Clone builder untuk upcoming count
-        $upcomingCount = $this->eventModel->where('date >=', $today)->countAllResults(false);
+        // Upcoming: tanggal >= today DAN is_active = 1
+        $upcomingCount = $this->eventModel
+            ->where('date >=', $today)
+            ->where('is_active', 1)
+            ->countAllResults(false);
         
-        // Buat instance baru untuk past count
         $eventModelForPast = new \App\Models\EventModel();
         $pastCount = $eventModelForPast->where('date <', $today)->countAllResults();
+        
+        // Inactive: is_active = 0 DAN tanggal >= today (bukan event selesai)
+        $eventModelForInactive = new \App\Models\EventModel();
+        $inactiveCount = $eventModelForInactive
+            ->where('is_active', 0)
+            ->where('date >=', $today)
+            ->countAllResults();
         
         $stats = [
             'total' => $totalEvents,
             'upcoming' => $upcomingCount,
-            'past' => $pastCount
+            'past' => $pastCount,
+            'inactive' => $inactiveCount
         ];
 
         $data = [
@@ -346,6 +395,10 @@ class AdminController extends BaseController
             'admin' => $this->getAdminData(),
             'events' => $events,
             'filter' => $filter,
+            'category' => $category,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'categories' => $uniqueCategories,
             'stats' => $stats
         ];
 
@@ -442,7 +495,8 @@ class AdminController extends BaseController
             'icon' => $this->request->getPost('icon') ?? '🎉',
             'description' => $this->request->getPost('description'),
             'available_tickets' => $this->request->getPost('available_tickets'),
-            'is_active' => $this->request->getPost('is_active') ?? 1
+            // Checkbox: jika dicentang = 1, jika tidak = 0
+            'is_active' => $this->request->getPost('is_active') ? 1 : 0
         ];
 
         // Handle image upload
@@ -499,6 +553,44 @@ class AdminController extends BaseController
             return redirect()->to('/admin/events')->with('success', 'Event berhasil dihapus');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus event: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Activate Event
+     */
+    public function activateEvent($eventId)
+    {
+        $event = $this->eventModel->find($eventId);
+
+        if (!$event) {
+            return redirect()->back()->with('error', 'Event tidak ditemukan');
+        }
+
+        try {
+            $this->eventModel->update($eventId, ['is_active' => 1]);
+            return redirect()->to('/admin/events')->with('success', 'Event berhasil diaktifkan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengaktifkan event: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deactivate Event
+     */
+    public function deactivateEvent($eventId)
+    {
+        $event = $this->eventModel->find($eventId);
+
+        if (!$event) {
+            return redirect()->back()->with('error', 'Event tidak ditemukan');
+        }
+
+        try {
+            $this->eventModel->update($eventId, ['is_active' => 0]);
+            return redirect()->to('/admin/events')->with('success', 'Event berhasil dinonaktifkan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menonaktifkan event: ' . $e->getMessage());
         }
     }
 
